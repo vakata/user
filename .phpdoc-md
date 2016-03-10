@@ -1,0 +1,9 @@
+<?php
+return (object)[
+    'rootNamespace' => 'vakata\user',
+    'destDirectory' => 'docs',
+    'format' => 'github',
+    'classes' => [
+        'vakata\user\User'
+    ],
+];

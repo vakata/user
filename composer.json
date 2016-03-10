@@ -1,0 +1,51 @@
+{
+    "name": "vakata/user",
+    "description": "A PHP user class",
+    "keywords": [
+        "vakata",
+        "user"
+    ],
+    "homepage": "https://github.com/vakata/user",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "vakata",
+            "email": "github@vakata.com",
+            "homepage": "http://www.vakata.com",
+            "role": "Developer"
+        }
+    ],
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/vakata/phpdoc-md"
+        }
+    ],
+    "require": {
+        "php" : ">=5.4.0",
+        "vakata/jwt" : "1.*"
+    },
+    "require-dev": {
+        "phpunit/phpunit" : "4.*",
+        "codeclimate/php-test-reporter": "dev-master",
+        "clean/phpdoc-md": "dev-master"
+    },
+    "suggest": {
+        "vakata/database" : "Install if you plan on using UserDatabase"
+    },
+    "autoload": {
+        "psr-4": {
+            "vakata\\user\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "vakata\\user\\test\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "psr2": "php-cs-fixer fix ./src",
+        "phpdoc": "phpdoc-md"
+    }
+}
