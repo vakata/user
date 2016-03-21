@@ -19,7 +19,32 @@ $ composer require vakata/user
 ## Usage
 
 ``` php
+use \vakata\user\UserDatabase;
 
+UserDatabase::init([
+    'key' => 'temp_sign_key',
+    'groups' => [ 'editors' => ['create-news'] ],
+    'permissions' => [ 'create-news' ]
+], $db);
+
+// on login:
+$auth = new \vakata\authentication\PasswordDatabase($db);
+$token = $auth->authenticate([
+    'username' => $req->getPost('username'),
+    'password' => $req->getPost('password')
+]);
+$token = UserDatabase::signToken($token);
+// store the token in a cookie or session
+
+// on a subsequent request:
+$user = UserDatabase::fromToken($token);
+// now interact with the user
+$user->hasPermission("create-news");
+$user->addGroup("editors");
+$user->hasPermission("create-news");
+
+// a user can also be created manually (for example for testing)
+$user = new UserDatabase(1); // simulate user with ID 1
 ```
 
 Read more in the [API docs](docs/README.md)

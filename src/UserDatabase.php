@@ -8,6 +8,22 @@ class UserDatabase extends User
 {
     protected static $db = null;
 
+    /**
+     * Static init method.
+     *
+     * In addition to the `User` options, the keys also include:
+     * * register - should new users with valid tokens be registered (defaults to `false`)
+     * * tableUsers - the table to store the users in (defaults to "users")
+     * * tableProviders - the table linking users to providers (defaults to "users_providers")
+     * * tableGroups - the table containing the available groups (defaults to "users_groups")
+     * * tablePermissions - the table containing the available permissions (defaults to "users_permissions")
+     * * tableGroupsPermissions - the table containing each group's permissions (defaults to "users_groups_permissions")
+     * * tableUserGroups - the table containing each user's groups (defaults to "users_user_groups")
+     * * tableUserPermissions - the table containing each user's permissions (defaults to "users_user_permissions")
+     * @method init
+     * @param  array  $options the options for future instances
+     * @param  \vakata\database\DatabaseInterface $db the DB instance
+     */
     public static function init(array $options, DBI $db = null)
     {
         if (!$db) {
@@ -53,7 +69,12 @@ class UserDatabase extends User
 
         parent::init($options);
     }
-
+    /**
+     * Create and store a new user in the database.
+     * @method createUser
+     * @param  array      $data the user data
+     * @return integer          the user ID
+     */
     public static function createUser(array $data = [])
     {
         $data = array_merge([
@@ -92,6 +113,12 @@ class UserDatabase extends User
         }
         return $userId;
     }
+    /**
+     * Creates a user instance from a token.
+     * @method fromToken
+     * @param  JWT|string    $token the token
+     * @return \vakata\user\User    the new user instance
+     */
     public static function fromToken($token)
     {
         if (is_string($token)) {
@@ -133,7 +160,11 @@ class UserDatabase extends User
             )
         );
     }
-
+    /**
+     * Create a new permission
+     * @method permissionCreate
+     * @param  string           $permission the new permission
+     */
     public static function permissionCreate($permission)
     {
         parent::permissionCreate($permission);
@@ -142,6 +173,11 @@ class UserDatabase extends User
             [ $permission, date('Y-m-d H:i:s') ]
         );
     }
+    /**
+     * Delete a permission.
+     * @method permissionDelete
+     * @param  string           $permission the permission to delete
+     */
     public static function permissionDelete($permission)
     {
         parent::permissionDelete($permissions);
@@ -150,6 +186,12 @@ class UserDatabase extends User
             [ $permission ]
         );
     }
+    /**
+     * Add a permission to a group.
+     * @method groupAddPermission
+     * @param  string             $group      the group to add a permission to
+     * @param  string             $permission the permission to add
+     */
     public static function groupAddPermission($group, $permission)
     {
         parent::groupAddPermission($group, $permission);
@@ -158,6 +200,12 @@ class UserDatabase extends User
             [ $group, $permission, date('Y-m-d H:i:s') ]
         );
     }
+    /**
+     * Delete a permission from a group.
+     * @method groupDeletePermission
+     * @param  string                $group      the group being modified
+     * @param  string                $permission the permission being removed
+     */
     public static function groupDeletePermission($group, $permission)
     {
         parent::groupDeletePermission($group, $permission);
@@ -166,6 +214,12 @@ class UserDatabase extends User
             [ $group, $permission ]
         );
     }
+    /**
+     * Create a new group.
+     * @method groupCreate
+     * @param  string      $group       the group name
+     * @param  array       $permissions optional array of permission for that group (defaults to an empty array)
+     */
     public static function groupCreate($group, $permissions = [])
     {
         parent::groupCreate($group, $permissions);
@@ -174,6 +228,11 @@ class UserDatabase extends User
             [ $group, date('Y-m-d H:i:s') ]
         );
     }
+    /**
+     * Delete a group.
+     * @method groupDelete
+     * @param  string      $group the group to delete
+     */
     public static function groupDelete($group)
     {
         parent::groupDelete($group);
@@ -182,7 +241,11 @@ class UserDatabase extends User
             [ $group ]
         );
     }
-
+    /**
+     * Add the user to a group
+     * @method addGroup
+     * @param  string   $group the group to add the user to
+     */
     public function addGroup($group)
     {
         parent::addGroup($group);
@@ -191,6 +254,11 @@ class UserDatabase extends User
             [ $this->data['user'], $group, date('Y-m-d H:i:s') ]
         );
     }
+    /**
+     * Give the user a new permission
+     * @method addPermission
+     * @param  string        $permission the permission to give
+     */
     public function addPermission($permission)
     {
         parent::addPermission($permission);
@@ -199,6 +267,11 @@ class UserDatabase extends User
             [ $this->data['user'], $permission, date('Y-m-d H:i:s') ]
         );
     }
+    /**
+     * Remove a user form a group
+     * @method deleteGroup
+     * @param  string      $group the group to remove the user from
+     */
     public function deleteGroup($group)
     {
         parent::deleteGroup($group);
@@ -207,6 +280,11 @@ class UserDatabase extends User
             [ $this->data['user'], $group ]
         );
     }
+    /**
+     * Remove a permission the user has.
+     * @method deletePermission
+     * @param  string           $permission the permission to remove
+     */
     public function deletePermission($permission)
     {
         parent::deletePermission($permission);

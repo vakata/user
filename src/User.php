@@ -12,6 +12,20 @@ class User
 
     protected static $options = [];
 
+    /**
+     * Static init method.
+     *
+     * Options include:
+     * * issuer - the issuer to use when signing JWT's
+     * * key - the key to use when signing JWT's (could be an array of keys)
+     * * validateIpAddress - should IP's be validated in tokens (defaults to `true`)
+     * * validateUserAgent - should the user agent be validated in tokens (defaults to `true`)
+     * * validateSessionID - should the session ID be validated in tokens (defaults to `true`)
+     * * groups - the groups in the system, an array of strings
+     * * permissions - the permissions in the system, an array of strings
+     * @method init
+     * @param  array  $options the options for future instances
+     */
     public static function init(array $options)
     {
         $options = array_merge([
@@ -30,6 +44,12 @@ class User
         $options['permissions'] = array_unique(array_values($options['permissions']));
         static::$options = $options;
     }
+    /**
+     * Static sign token function. Signs and encrypts a given JWT using the set of rules provided in `init`.
+     * @method signToken
+     * @param  JWT       $token the token to sign
+     * @return string           the signed and encrypted token
+     */
     public static function signToken(JWT $token)
     {
         if (!static::$options['key']) {
@@ -50,6 +70,12 @@ class User
         $token->sign(static::$options['key']);
         return $token->toString(md5(static::$options['key']));
     }
+    /**
+     * Static function for token verification. Will throw UserExceptions on invalid tokens.
+     * @method verifyToken
+     * @param  JWT         $token the token to verify
+     * @return string             the validated claims
+     */
     public static function verifyToken(JWT $token)
     {
         if (!static::$options['key']) {
@@ -86,6 +112,12 @@ class User
         $data['providerId'] = $data['id'];
         return $data;
     }
+    /**
+     * Creates a user instance from a token.
+     * @method fromToken
+     * @param  JWT|string    $token the token
+     * @return \vakata\user\User    the new user instance
+     */
     public static function fromToken($token)
     {
         if (is_string($token)) {
@@ -140,15 +172,30 @@ class User
     {
         return isset($_SERVER) && isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
     }
-
+    /**
+     * Get the list of permissions in the system.
+     * @method permissions
+     * @return array      the permissions available
+     */
     public static function permissions()
     {
         return static::$options['permissions'];
     }
+    /**
+     * Does a permission exist.
+     * @method permissionExists
+     * @param  string           $permission the permission to check for
+     * @return boolean                      does the permission exist
+     */
     public static function permissionExists($permission)
     {
         return in_array($permission, static::$options['permissions']);
     }
+    /**
+     * Create a new permission
+     * @method permissionCreate
+     * @param  string           $permission the new permission
+     */
     public static function permissionCreate($permission)
     {
         if (static::permissionExists($permission)) {
@@ -156,6 +203,11 @@ class User
         }
         static::$options['permissions'][] = $permission;
     }
+    /**
+     * Delete a permission.
+     * @method permissionDelete
+     * @param  string           $permission the permission to delete
+     */
     public static function permissionDelete($permission)
     {
         $index = array_search($permission, static::$options['permissions']);
@@ -172,14 +224,31 @@ class User
             }
         }
     }
+    /**
+     * Get a list of groups available in the system.
+     * @method groups
+     * @return array an array of group strings
+     */
     public static function groups()
     {
         return static::$options['groups'];
     }
+    /**
+     * Does a group exist.
+     * @method groupExists
+     * @param  string      $group the group to check for
+     * @return boolean            does the group exist
+     */
     public static function groupExists($group)
     {
         return isset(static::$options['groups'][$group]);
     }
+    /**
+     * Get a list of permissions included in group
+     * @method groupPermissions
+     * @param  string           $group the group to check
+     * @return array                   an array of permissions in that group
+     */
     public static function groupPermissions($group)
     {
         if (!static::groupExists($group)) {
@@ -187,10 +256,23 @@ class User
         }
         return static::$options['groups'][$group];
     }
+    /**
+     * Does a group have a given permission.
+     * @method groupHasPermission
+     * @param  string             $group      the group to check
+     * @param  string             $permission the permission to check
+     * @return boolean                        is the permission incldued in that group
+     */
     public static function groupHasPermission($group, $permission)
     {
         return in_array($permission, static::groupPermissions($group));
     }
+    /**
+     * Add a permission to a group.
+     * @method groupAddPermission
+     * @param  string             $group      the group to add a permission to
+     * @param  string             $permission the permission to add
+     */
     public static function groupAddPermission($group, $permission)
     {
         if (!isset(static::$options['groups'][$group])) {
@@ -204,6 +286,12 @@ class User
         }
         static::$options['groups'][$group][] = $permission;
     }
+    /**
+     * Delete a permission from a group.
+     * @method groupDeletePermission
+     * @param  string                $group      the group being modified
+     * @param  string                $permission the permission being removed
+     */
     public static function groupDeletePermission($group, $permission)
     {
         if (!static::groupExists($group)) {
@@ -216,6 +304,12 @@ class User
         unset(static::$options['groups'][$group][$index]);
         static::$options['groups'][$group] = array_values(static::$options['groups'][$group]);
     }
+    /**
+     * Create a new group.
+     * @method groupCreate
+     * @param  string      $group       the group name
+     * @param  array       $permissions optional array of permission for that group (defaults to an empty array)
+     */
     public static function groupCreate($group, $permissions = [])
     {
         if (static::groupExists($group)) {
@@ -229,6 +323,11 @@ class User
         }
         static::$options['groups'][$group] = $permissions;
     }
+    /**
+     * Delete a group.
+     * @method groupDelete
+     * @param  string      $group the group to delete
+     */
     public static function groupDelete($group)
     {
         if (!static::groupExists($group)) {
@@ -237,6 +336,14 @@ class User
         unset(static::$options['groups'][$group]);
     }
 
+    /**
+     * Create a new user instance.
+     * @method __construct
+     * @param  mixed       $id          the user ID
+     * @param  array       $data        optional array of user data (defaults to an empty array)
+     * @param  array       $groups      optional array of groups the user belongs to (defaults to an empty array)
+     * @param  array       $permissions optional array of permissions the user has (defaults to an empty array)
+     */
     public function __construct($id, array $data = [], array $groups = [], array $permissions = [])
     {
         $this->id = $id;
@@ -244,6 +351,14 @@ class User
         $this->groups = $groups;
         $this->permissions = $permissions;
     }
+    /**
+     * Get a piece of user data.
+     * @method get
+     * @param  string $key       the data to search for - use '.' to traverse arrays
+     * @param  mixed  $default   optional default to return if the key does not exist, defaults to `null`
+     * @param  string $separator the separator to use when traversing arrays, defaults to '.'
+     * @return mixed             the key value or the default
+     */
     public function get($key, $default = null, $separator = '.')
     {
         if ($key === 'id') {
@@ -259,6 +374,13 @@ class User
         }
         return $tmp;
     }
+    /**
+     * Set a piece of user data.
+     * @method set
+     * @param  string $key       the key to set, use '.' to traverse arrays
+     * @param  mixed  $value     the new value for the key
+     * @param  string $separator the separator to use when traversing arrays, defaults to '.'
+     */
     public function set($key, $value, $separator = '.')
     {
         $key = array_filter(explode($separator, $key));
@@ -275,6 +397,12 @@ class User
     {
         return $k === 'id' ? $this->id : $this->get($k);
     }
+    /**
+     * Is the user in a group.
+     * @method inGroup
+     * @param  string  $group the group to check for
+     * @return boolean        is the user in the group
+     */
     public function inGroup($group)
     {
         if (!static::groupExists($group)) {
@@ -282,6 +410,12 @@ class User
         }
         return in_array($group, $this->groups);
     }
+    /**
+     * Does the user have a permission.
+     * @method hasPermission
+     * @param  string        $permission the permission to check for
+     * @return boolean                   does the user have that permission
+     */
     public function hasPermission($permission)
     {
         if (!static::permissionExists($permission)) {
@@ -297,6 +431,11 @@ class User
         }
         return false;
     }
+    /**
+     * Add the user to a group
+     * @method addGroup
+     * @param  string   $group the group to add the user to
+     */
     public function addGroup($group)
     {
         if (!static::groupExists($group)) {
@@ -304,6 +443,11 @@ class User
         }
         $this->groups[] = $group;
     }
+    /**
+     * Give the user a new permission
+     * @method addPermission
+     * @param  string        $permission the permission to give
+     */
     public function addPermission($permission)
     {
         if (!static::permissionExists($permission)) {
@@ -311,6 +455,11 @@ class User
         }
         $this->permissions[] = $permission;
     }
+    /**
+     * Remove a permission the user has.
+     * @method deletePermission
+     * @param  string           $permission the permission to remove
+     */
     public function deletePermission($permission)
     {
         if (!static::permissionExists($permission)) {
@@ -323,6 +472,11 @@ class User
         unset($this->permissions[$index]);
         $this->permissions = array_values($this->permissions);
     }
+    /**
+     * Remove a user form a group
+     * @method deleteGroup
+     * @param  string      $group the group to remove the user from
+     */
     public function deleteGroup($group)
     {
         if (!static::groupExists($group)) {

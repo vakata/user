@@ -4,6 +4,7 @@ return (object)[
     'destDirectory' => 'docs',
     'format' => 'github',
     'classes' => [
-        'vakata\user\User'
+        'vakata\user\User',
+        'vakata\user\UserDatabase'
     ],
 ];
