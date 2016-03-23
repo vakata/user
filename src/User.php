@@ -78,7 +78,7 @@ class User
         }
         $token->sign(static::$options['key']);
         return $encrypt ?
-            $token->toString(md5(is_string($encrypt) ? $encrypt : static::$options['key'])) :
+            $token->toString(is_string($encrypt) ? $encrypt : md5(static::$options['key'])) :
             $token->toString();
     }
     /**
