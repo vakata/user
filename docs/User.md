@@ -6,7 +6,7 @@
 | Name | Description |
 |------|-------------|
 |[init](#vakata\user\userinit)|Static init method.|
-|[signToken](#vakata\user\usersigntoken)|Static sign token function. Signs and encrypts a given JWT using the set of rules provided in `init`.|
+|[secureToken](#vakata\user\usersecuretoken)|Static sign token function. Signs and encrypts a given JWT using the set of rules provided in `init`.|
 |[verifyToken](#vakata\user\userverifytoken)|Static function for token verification. Will throw UserExceptions on invalid tokens.|
 |[fromToken](#vakata\user\userfromtoken)|Creates a user instance from a token.|
 |[ipAddress](#vakata\user\useripaddress)|get the client's IP address|
@@ -61,19 +61,23 @@ public static function init (
 ---
 
 
-### vakata\user\User::signToken
+### vakata\user\User::secureToken
 Static sign token function. Signs and encrypts a given JWT using the set of rules provided in `init`.  
 
 
 ```php
-public static function signToken (  
-    \JWT $token  
+public static function secureToken (  
+    \JWT $token,  
+    boolean|string $encrypt,  
+    int|string $validity  
 ) : string    
 ```
 
 |  | Type | Description |
 |-----|-----|-----|
 | `$token` | `\JWT` | the token to sign |
+| `$encrypt` | `boolean`, `string` | should the token be encrypted (or a string key) (defaults to `true`) |
+| `$validity` | `int`, `string` | the validity of the token in seconds or a strtotime expression (defaults to `86400`) |
 |  |  |  |
 | `return` | `string` | the signed and encrypted token |
 
@@ -105,13 +109,15 @@ Creates a user instance from a token.
 
 ```php
 public static function fromToken (  
-    \JWT|string $token  
+    \JWT|string $token,  
+    string $decryptionKey  
 ) : \vakata\user\User    
 ```
 
 |  | Type | Description |
 |-----|-----|-----|
 | `$token` | `\JWT`, `string` | the token |
+| `$decryptionKey` | `string` | optional decryption key string |
 |  |  |  |
 | `return` | `\vakata\user\User` | the new user instance |
 

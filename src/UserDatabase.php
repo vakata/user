@@ -117,12 +117,13 @@ class UserDatabase extends User
      * Creates a user instance from a token.
      * @method fromToken
      * @param  JWT|string    $token the token
+     * @param  string $decryptionKey optional decryption key string
      * @return \vakata\user\User    the new user instance
      */
-    public static function fromToken($token)
+    public static function fromToken($token, $decryptionKey = null)
     {
         if (is_string($token)) {
-            $token = JWT::fromString($token, md5(static::$options['key']));
+            $token = JWT::fromString($token, $decryptionKey ? $decryptionKey : md5(static::$options['key']));
         }
         $data = static::verifyToken($token);
 

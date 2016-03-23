@@ -46,15 +46,24 @@ class User
     }
     /**
      * Static sign token function. Signs and encrypts a given JWT using the set of rules provided in `init`.
-     * @method signToken
-     * @param  JWT       $token the token to sign
-     * @return string           the signed and encrypted token
+     * @method secureToken
+     * @param  JWT        $token    the token to sign
+     * @param  boolean|string $encrypt  should the token be encrypted (or a string key) (defaults to `true`)
+     * @param  int|string $validity the validity of the token in seconds or a strtotime expression (defaults to `86400`)
+     * @return string               the signed and encrypted token
      */
-    public static function signToken(JWT $token)
+    public static function secureToken(JWT $token, $encrypt = true, $validity = 86400)
     {
         if (!static::$options['key']) {
             throw new UserException('No key set');
         }
+        
+        $validity = is_numeric($validity) ? time() + $validity : strtotime($validity);
+        if ($validity === false) {
+            throw new UserException('Invalid token expire time');
+        }
+        $token->setExpiration($validity);
+
         if (static::$options['issuer']) {
             $token->setIssuer($issuer);
         }
@@ -68,7 +77,9 @@ class User
             $token->setClaim('sess', session_id());
         }
         $token->sign(static::$options['key']);
-        return $token->toString(md5(static::$options['key']));
+        return $encrypt ?
+            $token->toString(md5(is_string($encrypt) ? $encrypt : static::$options['key'])) :
+            $token->toString();
     }
     /**
      * Static function for token verification. Will throw UserExceptions on invalid tokens.
@@ -116,12 +127,13 @@ class User
      * Creates a user instance from a token.
      * @method fromToken
      * @param  JWT|string    $token the token
+     * @param  string $decryptionKey optional decryption key string
      * @return \vakata\user\User    the new user instance
      */
-    public static function fromToken($token)
+    public static function fromToken($token, $decryptionKey = null)
     {
         if (is_string($token)) {
-            $token = JWT::fromString($token, md5(static::$options['key']));
+            $token = JWT::fromString($token, $decryptionKey ? $decryptionKey : md5(static::$options['key']));
         }
         $data = static::verifyToken($token);
         new static(md5(((string)$data['providerId']) . '@' . ((string)$data['provider'])), $data);
