@@ -2,6 +2,7 @@
 namespace vakata\user;
 
 use vakata\jwt\JWT;
+use vakata\jwt\TokenException;
 
 class User
 {
@@ -133,7 +134,11 @@ class User
     public static function fromToken($token, $decryptionKey = null)
     {
         if (is_string($token)) {
-            $token = JWT::fromString($token, $decryptionKey ? $decryptionKey : md5(static::$options['key']));
+            try {
+                $token = JWT::fromString($token, $decryptionKey ? $decryptionKey : md5(static::$options['key']));
+            } catch (TokenException $e) {
+                throw new UserException('Invalid token');
+            }
         }
         $data = static::verifyToken($token);
         new static(md5(((string)$data['providerId']) . '@' . ((string)$data['provider'])), $data);

@@ -2,6 +2,7 @@
 namespace vakata\user;
 
 use vakata\jwt\JWT;
+use vakata\jwt\TokenException;
 use vakata\database\DatabaseInterface as DBI;
 
 class UserDatabase extends User
@@ -123,7 +124,11 @@ class UserDatabase extends User
     public static function fromToken($token, $decryptionKey = null)
     {
         if (is_string($token)) {
-            $token = JWT::fromString($token, $decryptionKey ? $decryptionKey : md5(static::$options['key']));
+            try {
+                $token = JWT::fromString($token, $decryptionKey ? $decryptionKey : md5(static::$options['key']));
+            } catch (TokenException $e) {
+                throw new UserException('Invalid token');
+            }
         }
         $data = static::verifyToken($token);
 
