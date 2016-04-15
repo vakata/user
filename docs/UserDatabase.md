@@ -18,6 +18,7 @@
 |[addPermission](#vakata\user\userdatabaseaddpermission)|Give the user a new permission|
 |[deleteGroup](#vakata\user\userdatabasedeletegroup)|Remove a user form a group|
 |[deletePermission](#vakata\user\userdatabasedeletepermission)|Remove a permission the user has.|
+|[setPrimaryGroup](#vakata\user\userdatabasesetprimarygroup)|Set the user's primary group|
 |[secureToken](#vakata\user\userdatabasesecuretoken)|Static sign token function. Signs and encrypts a given JWT using the set of rules provided in `init`.|
 |[verifyToken](#vakata\user\userdatabaseverifytoken)|Static function for token verification. Will throw UserExceptions on invalid tokens.|
 |[ipAddress](#vakata\user\userdatabaseipaddress)|get the client's IP address|
@@ -33,6 +34,8 @@
 |[set](#vakata\user\userdatabaseset)|Set a piece of user data.|
 |[inGroup](#vakata\user\userdatabaseingroup)|Is the user in a group.|
 |[hasPermission](#vakata\user\userdatabasehaspermission)|Does the user have a permission.|
+|[getGroups](#vakata\user\userdatabasegetgroups)|Get the user's groups|
+|[getPrimaryGroup](#vakata\user\userdatabasegetprimarygroup)|Get the user's primary group|
 
 ---
 
@@ -281,6 +284,18 @@ public function deletePermission (
 ---
 
 
+### vakata\user\UserDatabase::setPrimaryGroup
+Set the user's primary group  
+
+
+```php
+public function setPrimaryGroup ()   
+```
+
+
+---
+
+
 ### vakata\user\UserDatabase::secureToken
 Static sign token function. Signs and encrypts a given JWT using the set of rules provided in `init`.  
 
@@ -474,7 +489,8 @@ public function __construct (
     mixed $id,  
     array $data,  
     array $groups,  
-    array $permissions  
+    array $permissions,  
+    string|null $primary  
 )   
 ```
 
@@ -484,6 +500,7 @@ public function __construct (
 | `$data` | `array` | optional array of user data (defaults to an empty array) |
 | `$groups` | `array` | optional array of groups the user belongs to (defaults to an empty array) |
 | `$permissions` | `array` | optional array of permissions the user has (defaults to an empty array) |
+| `$primary` | `string`, `null` | the user's primary group name (defaults to `null`) |
 
 ---
 
@@ -566,6 +583,40 @@ public function hasPermission (
 | `$permission` | `string` | the permission to check for |
 |  |  |  |
 | `return` | `boolean` | does the user have that permission |
+
+---
+
+
+### vakata\user\UserDatabase::getGroups
+Get the user's groups  
+
+
+```php
+public function getGroups (  
+    array $groups  
+)   
+```
+
+|  | Type | Description |
+|-----|-----|-----|
+| `$groups` | `array` | the user's group list |
+
+---
+
+
+### vakata\user\UserDatabase::getPrimaryGroup
+Get the user's primary group  
+
+
+```php
+public function getPrimaryGroup (  
+    string $group  
+)   
+```
+
+|  | Type | Description |
+|-----|-----|-----|
+| `$group` | `string` | the user's primary group |
 
 ---
 

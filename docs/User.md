@@ -32,6 +32,9 @@
 |[addPermission](#vakata\user\useraddpermission)|Give the user a new permission|
 |[deletePermission](#vakata\user\userdeletepermission)|Remove a permission the user has.|
 |[deleteGroup](#vakata\user\userdeletegroup)|Remove a user form a group|
+|[getGroups](#vakata\user\usergetgroups)|Get the user's groups|
+|[getPrimaryGroup](#vakata\user\usergetprimarygroup)|Get the user's primary group|
+|[setPrimaryGroup](#vakata\user\usersetprimarygroup)|Set the user's primary group|
 
 ---
 
@@ -383,7 +386,8 @@ public function __construct (
     mixed $id,  
     array $data,  
     array $groups,  
-    array $permissions  
+    array $permissions,  
+    string|null $primary  
 )   
 ```
 
@@ -393,6 +397,7 @@ public function __construct (
 | `$data` | `array` | optional array of user data (defaults to an empty array) |
 | `$groups` | `array` | optional array of groups the user belongs to (defaults to an empty array) |
 | `$permissions` | `array` | optional array of permissions the user has (defaults to an empty array) |
+| `$primary` | `string`, `null` | the user's primary group name (defaults to `null`) |
 
 ---
 
@@ -543,6 +548,52 @@ public function deleteGroup (
 |  | Type | Description |
 |-----|-----|-----|
 | `$group` | `string` | the group to remove the user from |
+
+---
+
+
+### vakata\user\User::getGroups
+Get the user's groups  
+
+
+```php
+public function getGroups (  
+    array $groups  
+)   
+```
+
+|  | Type | Description |
+|-----|-----|-----|
+| `$groups` | `array` | the user's group list |
+
+---
+
+
+### vakata\user\User::getPrimaryGroup
+Get the user's primary group  
+
+
+```php
+public function getPrimaryGroup (  
+    string $group  
+)   
+```
+
+|  | Type | Description |
+|-----|-----|-----|
+| `$group` | `string` | the user's primary group |
+
+---
+
+
+### vakata\user\User::setPrimaryGroup
+Set the user's primary group  
+
+
+```php
+public function setPrimaryGroup ()   
+```
+
 
 ---
 

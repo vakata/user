@@ -9,6 +9,7 @@ class User
     protected $id;
     protected $data = [];
     protected $groups = [];
+    protected $primary = null;
     protected $permissions = [];
 
     protected static $options = [];
@@ -360,13 +361,15 @@ class User
      * @param  array       $data        optional array of user data (defaults to an empty array)
      * @param  array       $groups      optional array of groups the user belongs to (defaults to an empty array)
      * @param  array       $permissions optional array of permissions the user has (defaults to an empty array)
+     * @param  string|null $primary     the user's primary group name (defaults to `null`)
      */
-    public function __construct($id, array $data = [], array $groups = [], array $permissions = [])
+    public function __construct($id, array $data = [], array $groups = [], array $permissions = [], $primary = null)
     {
         $this->id = $id;
         $this->data = $data;
         $this->groups = $groups;
         $this->permissions = $permissions;
+        $this->primary = $primary && in_array($primary, $groups) && static::groupExists($primary) ? $primary : null;
     }
     /**
      * Get a piece of user data.
@@ -505,5 +508,37 @@ class User
         }
         unset($this->groups[$index]);
         $this->groups = array_values($this->groups);
+    }
+    /**
+     * Get the user's groups
+     * @method getGroups
+     * @param  array      $groups the user's group list
+     */
+    public function getGroups()
+    {
+        return $this->groups;
+    }
+    /**
+     * Get the user's primary group
+     * @method getPrimaryGroup
+     * @param  string      $group the user's primary group
+     */
+    public function getPrimaryGroup()
+    {
+        return $this->primary ?: current($this->groups);
+    }
+    /**
+     * Set the user's primary group
+     * @method setPrimaryGroup
+     */
+    public function setPrimaryGroup($group)
+    {
+        if (!static::groupExists($group)) {
+            throw new UserException('Invalid group');
+        }
+        if (!$this->inGroup($group)) {
+            throw new UserException('User does not belong to this group');
+        }
+        $this->primary = $group;
     }
 }

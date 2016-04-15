@@ -163,6 +163,10 @@ class UserDatabase extends User
             static::$db->all(
                 "SELECT perm FROM " . static::$options['tableUserPermissions'] . " WHERE user = ? ORDER BY perm",
                 [ $userId ]
+            ),
+            static::$db->one(
+                "SELECT grp FROM " . static::$options['tableUserGroups'] . " WHERE user = ? AND main = 1 ORDER BY grp",
+                [ $userId ]
             )
         );
     }
@@ -297,6 +301,22 @@ class UserDatabase extends User
         static::$db->query(
             "DELETE FROM " . static::$options['tableUserPermissions'] . " WHERE user = ? AND perm = ?",
             [ $this->data['user'], $permission ]
+        );
+    }
+    /**
+     * Set the user's primary group
+     * @method setPrimaryGroup
+     */
+    public function setPrimaryGroup($group)
+    {
+        parent::setPrimaryGroup($group);
+        static::$db->query(
+            "UPDATE " . static::$options['tableUserGroups'] . " SET main = 0 WHERE user = ?",
+            [ $this->data['user'] ]
+        );
+        static::$db->query(
+            "UPDATE " . static::$options['tableUserGroups'] . " SET main = 1 WHERE user = ? AND grp = ?",
+            [ $this->data['user'], $group ]
         );
     }
 }
