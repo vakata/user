@@ -191,10 +191,24 @@ class UserDatabase extends User
     public static function permissionDelete($permission)
     {
         parent::permissionDelete($permissions);
-        static::$db->query(
-            "DELETE FROM " . static::$options['tablePermissions'] . " WHERE perm = ?",
-            [ $permission ]
-        );
+        try {
+            static::$db->query(
+                "DELETE FROM " . static::$options['tableUserPermissions'] . " WHERE perm = ?",
+                [ $permission ]
+            );
+            static::$db->query(
+                "DELETE FROM " . static::$options['tableGroupsPermissions'] . " WHERE perm = ?",
+                [ $permission ]
+            );
+            static::$db->query(
+                "DELETE FROM " . static::$options['tablePermissions'] . " WHERE perm = ?",
+                [ $permission ]
+            );
+            static::$db->commit($trans);
+        } catch (\Exception $e) {
+            static::$db->rollback($trans);
+            throw $e;
+        }
     }
     /**
      * Add a permission to a group.
@@ -246,10 +260,25 @@ class UserDatabase extends User
     public static function groupDelete($group)
     {
         parent::groupDelete($group);
-        static::$db->query(
-            "DELETE FROM " . static::$options['tableGroups'] . " WHERE grp = ?",
-            [ $group ]
-        );
+        $trans = static::$db->begin();
+        try {
+            static::$db->query(
+                "DELETE FROM " . static::$options['tableUserGroups'] . " WHERE grp = ?",
+                [ $group ]
+            );
+            static::$db->query(
+                "DELETE FROM " . static::$options['tableGroupsPermissions'] . " WHERE grp = ?",
+                [ $group ]
+            );
+            static::$db->query(
+                "DELETE FROM " . static::$options['tableGroups'] . " WHERE grp = ?",
+                [ $group ]
+            );
+            static::$db->commit($trans);
+        } catch (\Exception $e) {
+            static::$db->rollback($trans);
+            throw $e;
+        }
     }
     /**
      * Add the user to a group
