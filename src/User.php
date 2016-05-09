@@ -67,7 +67,7 @@ class User
         $token->setExpiration($validity);
 
         if (static::$options['issuer']) {
-            $token->setIssuer($issuer);
+            $token->setIssuer(static::$options['issuer']);
         }
         if (static::$options['validateIpAddress']) {
             $token->setClaim('ip', static::ipAddress());
