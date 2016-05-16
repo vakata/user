@@ -116,6 +116,41 @@ class UserDatabase extends User
     }
     /**
      * Creates a user instance from a token.
+     * @method fromID
+     * @param  int|string     $userId the user ID
+     * @param  array          $data   optional additional data for the user
+     * @return \vakata\user\User    the new user instance
+     */
+    public static function fromID($userId, array $data = [])
+    {
+        $userData = static::$db->one(
+            "SELECT * FROM " . static::$options['tableUsers'] . " WHERE user = ?",
+            [ $userId ]
+        );
+        if (!$userData) {
+            throw new UserException("User does not exist");
+        }
+        $userData = array_merge($userData, [ 'provider' => '', 'providerId' => $userId ], $data);
+
+        return new static(
+            $userId,
+            $userData,
+            static::$db->all(
+                "SELECT grp FROM " . static::$options['tableUserGroups'] . " WHERE user = ? ORDER BY grp",
+                [ $userId ]
+            ),
+            static::$db->all(
+                "SELECT perm FROM " . static::$options['tableUserPermissions'] . " WHERE user = ? ORDER BY perm",
+                [ $userId ]
+            ),
+            static::$db->one(
+                "SELECT grp FROM " . static::$options['tableUserGroups'] . " WHERE user = ? AND main = 1 ORDER BY grp",
+                [ $userId ]
+            )
+        );
+    }
+    /**
+     * Creates a user instance from a token.
      * @method fromToken
      * @param  JWT|string    $token the token
      * @param  string $decryptionKey optional decryption key string
@@ -142,33 +177,8 @@ class UserDatabase extends User
             }
             $userId = static::createUser($data);
         }
-        $userData = static::$db->one(
-            "SELECT * FROM " . static::$options['tableUsers'] . " WHERE user = ?",
-            [ $userId ]
-        );
-        if (!$userData) {
-            throw new UserException("User does not exist");
-        }
-        $userData['provider'] = $data['provider'];
-        $userData['providerId'] = $data['providerId'];
-        $userData = array_merge($data, $userData);
 
-        return new static(
-            $userId,
-            $userData,
-            static::$db->all(
-                "SELECT grp FROM " . static::$options['tableUserGroups'] . " WHERE user = ? ORDER BY grp",
-                [ $userId ]
-            ),
-            static::$db->all(
-                "SELECT perm FROM " . static::$options['tableUserPermissions'] . " WHERE user = ? ORDER BY perm",
-                [ $userId ]
-            ),
-            static::$db->one(
-                "SELECT grp FROM " . static::$options['tableUserGroups'] . " WHERE user = ? AND main = 1 ORDER BY grp",
-                [ $userId ]
-            )
-        );
+        return static::fromID($userId, $data);
     }
     /**
      * Create a new permission
