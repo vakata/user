@@ -130,7 +130,7 @@ class UserDatabase extends User
         if (!$userData) {
             throw new UserException("User does not exist");
         }
-        $userData = array_merge($userData, [ 'provider' => '', 'providerId' => $userId ], $data);
+        $userData = array_merge([ 'provider' => '', 'providerId' => $userId ], $data, $userData);
 
         return new static(
             $userId,
