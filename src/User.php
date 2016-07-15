@@ -362,14 +362,16 @@ class User
      * @param  array       $groups      optional array of groups the user belongs to (defaults to an empty array)
      * @param  array       $permissions optional array of permissions the user has (defaults to an empty array)
      * @param  string|null $primary     the user's primary group name (defaults to `null`)
+     * @param  array       $tokens      an array of predefined value-name user token pairs (defaults to an empty array)
      */
-    public function __construct($id, array $data = [], array $groups = [], array $permissions = [], $primary = null)
+    public function __construct($id, array $data = [], array $groups = [], array $permissions = [], $primary = null, array $tokens = [])
     {
         $this->id = $id;
         $this->data = $data;
         $this->groups = $groups;
         $this->permissions = $permissions;
         $this->primary = $primary && in_array($primary, $groups) && static::groupExists($primary) ? $primary : null;
+        $this->tokens = $tokens;
     }
     /**
      * Get a piece of user data.
@@ -512,7 +514,7 @@ class User
     /**
      * Get the user's groups
      * @method getGroups
-     * @param  array      $groups the user's group list
+     * @return  array  the user's group list
      */
     public function getGroups()
     {
@@ -540,5 +542,45 @@ class User
             throw new UserException('User does not belong to this group');
         }
         $this->primary = $group;
+    }
+    /**
+     * Does the user own this token.
+     * @method hasToken
+     * @param  string        $token the token to check for
+     * @return boolean              does the user have that token
+     */
+    public function hasToken($token)
+    {
+        return isset($this->tokens[$token]);
+    }
+    /**
+     * Add a new named token
+     * @method addToken
+     * @param  string        $token the token value
+     * @param  string        $name the token name
+     */
+    public function addToken($token, $name)
+    {
+        $this->tokens[$token] = $name;
+    }
+    /**
+     * Remove a token.
+     * @method deleteToken
+     * @param  string           $token the token to remove
+     */
+    public function deleteToken($token)
+    {
+        if ($this->hasToken($token)) {
+            unset($this->tokens[$token]);
+        }
+    }
+    /**
+     * Get the user's tokens
+     * @method getTokens
+     * @return   the value-name token pairs
+     */
+    public function getTokens()
+    {
+        return $this->tokens;
     }
 }
