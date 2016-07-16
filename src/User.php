@@ -5,7 +5,7 @@ use vakata\jwt\JWT;
 use vakata\jwt\TokenException;
 use vakata\kvstore\StorageInterface;
 
-class User implements StorageInterface, UserInterface
+class User implements StorageInterface, UserInterface, UserManagementInterface
 {
     protected $id;
     protected $data;
