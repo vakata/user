@@ -39,7 +39,6 @@ class UserDatabase extends User
             'tableGroupsPermissions' => 'users_groups_permissions',
             'tableUserGroups'        => 'users_user_groups',
             'tableUserPermissions'   => 'users_user_permissions',
-            'tableUserTokens'        => 'users_user_tokens',
             'groups'                 => [],
             'permissions'            => []
         ], $options);
@@ -147,12 +146,6 @@ class UserDatabase extends User
             static::$db->one(
                 "SELECT grp FROM " . static::$options['tableUserGroups'] . " WHERE user = ? AND main = 1 ORDER BY grp",
                 [ $userId ]
-            ),
-            static::$db->all(
-                "SELECT token, name FROM " . static::$options['tableUserTokens'] . " WHERE user = ? ORDER BY name",
-                [ $userId ],
-                'token',
-                true
             )
         );
     }
@@ -166,15 +159,6 @@ class UserDatabase extends User
     public static function fromToken($token, $decryptionKey = null)
     {
         if (is_string($token)) {
-            if (static::$options['tableUserTokens']) {
-                $userId = static::$db->one(
-                    "SELECT user FROM " . static::$options['tableUserTokens'] . " WHERE token = ?",
-                    $token
-                );
-                if ($userId) {
-                    return static::fromID($userId);
-                }
-            }
             try {
                 $token = JWT::fromString($token, $decryptionKey ? $decryptionKey : md5(static::$options['key']));
             } catch (TokenException $e) {
@@ -372,33 +356,6 @@ class UserDatabase extends User
         static::$db->query(
             "UPDATE " . static::$options['tableUserGroups'] . " SET main = 1 WHERE user = ? AND grp = ?",
             [ $this->data['user'], $group ]
-        );
-    }
-    /**
-     * Add a new named token
-     * @method addToken
-     * @param  string        $token the token value
-     * @param  string        $name the token name
-     */
-    public function addToken($token, $name)
-    {
-        parent::addToken($token, $name);
-        static::$db->query(
-            "INSERT INTO " . static::$options['tableUserTokens'] . " (user, token, name) VALUES (?, ?, ?)",
-            [ $this->data['user'], $token, $name ]
-        );
-    }
-    /**
-     * Remove a token.
-     * @method deleteToken
-     * @param  string           $token the token to remove
-     */
-    public function deleteToken($token)
-    {
-        parent::deleteToken($token);
-        static::$db->query(
-            "DELETE FROM " . static::$options['tableUserTokens'] . " WHERE user = ? AND token = ?",
-            [ $this->data['user'], $token ]
         );
     }
 }
