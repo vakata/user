@@ -23,7 +23,8 @@
     ],
     "require": {
         "php" : ">=5.4.0",
-        "vakata/jwt" : "1.*"
+        "vakata/jwt" : "1.*",
+        "vakata/kvstore" : "1.*"
     },
     "require-dev": {
         "phpunit/phpunit" : "4.*",

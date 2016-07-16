@@ -3,11 +3,12 @@ namespace vakata\user;
 
 use vakata\jwt\JWT;
 use vakata\jwt\TokenException;
+use vakata\kvstore\StorageInterface;
 
-class User
+class User implements StorageInterface, UserInterface
 {
     protected $id;
-    protected $data = [];
+    protected $data;
     protected $groups = [];
     protected $primary = null;
     protected $permissions = [];
@@ -366,7 +367,7 @@ class User
     public function __construct($id, array $data = [], array $groups = [], array $permissions = [], $primary = null)
     {
         $this->id = $id;
-        $this->data = $data;
+        $this->data = new \vakata\kvstore\Storage(array_values($data));
         $this->groups = $groups;
         $this->permissions = $permissions;
         $this->primary = $primary && in_array($primary, $groups) && static::groupExists($primary) ? $primary : null;
@@ -384,15 +385,7 @@ class User
         if ($key === 'id') {
             return $this->id;
         }
-        $key = array_filter(explode($separator, $key));
-        $tmp = $this->data;
-        foreach ($key as $k) {
-            if (!isset($tmp[$k])) {
-                return $default;
-            }
-            $tmp = $tmp[$k];
-        }
-        return $tmp;
+        return $this->data->get($key, $default, $separator);
     }
     /**
      * Set a piece of user data.
@@ -403,19 +396,27 @@ class User
      */
     public function set($key, $value, $separator = '.')
     {
-        $key = array_filter(explode($separator, $key));
-        $tmp = &$this->data;
-        foreach ($key as $k) {
-            if (!isset($tmp[$k])) {
-                $tmp[$k] = [];
-            }
-            $tmp = &$tmp[$k];
-        }
-        return $tmp = is_array($tmp) && is_array($value) && count($tmp) ? array_merge($tmp, $value) : $value;
+        return $this->data->set($key, $value, $separator);
     }
+    /**
+     * Delete an element from the storage.
+     * @method set
+     * @param  string $key       the element to delete (can be a deeply nested element of the data array)
+     * @param  string $separator the string used to separate levels of the array, defaults to "."
+     * @return mixed|null        the value that was just deleted or null
+     */
+    public function del($key, $separator = '.')
+    {
+        return $this->data->del($key, $separator);
+    }
+
     public function __get($k)
     {
-        return $k === 'id' ? $this->id : $this->get($k);
+        return $this->get($k);
+    }
+    public function __set($k, $v)
+    {
+        return $this->set($k, $v);
     }
     /**
      * Is the user in a group.
