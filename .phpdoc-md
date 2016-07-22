@@ -4,7 +4,13 @@ return (object)[
     'destDirectory' => 'docs',
     'format' => 'github',
     'classes' => [
+        'vakata\user\UserException',
         'vakata\user\User',
-        'vakata\user\UserDatabase'
+        'vakata\user\UserInterface',
+        'vakata\user\Group',
+        'vakata\user\GroupInterface',
+        'vakata\user\UserManagement',
+        'vakata\user\UserManagementDatabase',
+        'vakata\user\UserManagementInterface'
     ],
 ];

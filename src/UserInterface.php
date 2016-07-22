@@ -2,17 +2,20 @@
 
 namespace vakata\user;
 
-use vakata\jwt\JWT;
+use vakata\kvstore\StorageInterface;
 
-interface UserInterface
+interface UserInterface extends StorageInterface
 {
-    public function inGroup($group);
-    public function hasPermission($permission);
-    public function addGroup($group);
-    public function addPermission($permission);
-    public function deletePermission($permission);
-    public function deleteGroup($group);
-    public function getGroups();
+    public function getID();
+    public function setID($id) : UserInterface;
+    public function getData() : array;
+    public function inGroup($group) : bool;
+    public function getGroups() : array;
     public function getPrimaryGroup();
-    public function setPrimaryGroup($group);
+    public function hasPermission(string $permission) : bool;
+    public function getPermissions() : array;
+
+    public function addGroup(GroupInterface $group) : UserInterface;
+    public function deleteGroup(GroupInterface $group) : UserInterface;
+    public function setPrimaryGroup(GroupInterface $group) : UserInterface;
 }
