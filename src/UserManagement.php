@@ -63,10 +63,10 @@ class UserManagement implements UserManagementInterface
             $token->setIssuer($this->options['issuer']);
         }
         if ($this->options['validateIpAddress']) {
-            $token->setClaim('ip', $this->ipAddress());
+            $token->setClaim('ip', $this->options['validateIpAddress']);
         }
         if ($this->options['validateUserAgent']) {
-            $token->setClaim('ua', $this->userAgent());
+            $token->setClaim('ua', $this->options['validateUserAgent']);
         }
         if ($this->options['validateSessionID']) {
             $token->setClaim('sess', session_id());
