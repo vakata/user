@@ -126,8 +126,8 @@ class UserManagementDatabase extends UserManagement
             }
             if ($data['provider'] && $data['providerId']) {
                 $this->db->query(
-                    "INSERT INTO " . $this->options['tableProviders'] . " (provider, id, user) VALUES (?, ?, ?)",
-                    [ (string)$data['provider'], (string)$data['providerId'], $userId ]
+                    "INSERT INTO " . $this->options['tableProviders'] . " (provider, id, user, created) VALUES (?, ?, ?, ?)",
+                    [ (string)$data['provider'], (string)$data['providerId'], $userId, date('Y-m-d H:i:s') ]
                 );
             }
             foreach ($user->getGroups() as $group) {
