@@ -55,14 +55,14 @@ Creates a user instance from a token.
 ```php
 public function fromToken (  
     \JWT|string $token,  
-    string $decryptionKey  
+    boolean $register  
 ) : \vakata\user\User    
 ```
 
 |  | Type | Description |
 |-----|-----|-----|
 | `$token` | `\JWT`, `string` | the token |
-| `$decryptionKey` | `string` | optional decryption key string |
+| `$register` | `boolean` | create a new user if the token is valid, defaults to `false` |
 |  |  |  |
 | `return` | `\vakata\user\User` | the new user instance |
 

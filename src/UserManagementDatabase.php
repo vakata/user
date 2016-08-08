@@ -67,10 +67,10 @@ class UserManagementDatabase extends UserManagement
      * Creates a user instance from a token.
      * @method fromToken
      * @param  JWT|string    $token the token
-     * @param  string $decryptionKey optional decryption key string
+     * @param  boolean       $register create a new user if the token is valid, defaults to `false`
      * @return \vakata\user\User    the new user instance
      */
-    public function fromToken($token) : UserInterface
+    public function fromToken($token, $register = false) : UserInterface
     {
         $data = $this->parseToken($token);
         $data['providerId'] = $data['id'];
@@ -80,12 +80,17 @@ class UserManagementDatabase extends UserManagement
             "SELECT user FROM " . $this->options['tableProviders'] . " WHERE provider = ? AND id = ?",
             [ $data['provider'], $data['providerId'] ]
         );
+        if (!$user && !$register) {
+            throw new UserException('Invalid user');
+        }
         if (!$user) {
             $temp = new User(null, $data);
             $this->saveUser($temp);
             $user = $this->getID();
         }
-        return $this->getUser($user);
+        $user = $this->getUser($user);
+        $user->set('token', $data);
+        return $user;
     }
 
     /**

@@ -127,13 +127,18 @@ class UserManagement implements UserManagementInterface
      * Creates a user instance from a token.
      * @method fromToken
      * @param  JWT|string    $token the token
+     * @param  boolean       $register create a new user if the token is valid, defaults to `false`
      * @return \vakata\user\User    the new user instance
      */
-    public function fromToken($token) : UserInterface
+    public function fromToken($token, $register = false) : UserInterface
     {
         $data = $this->parseToken($token);
         $data['providerId'] = $data['id'];
         $data['id'] = $data['providerId'] . '@' . $data['provider'];
+        if (!$register && !isset($this->userStorage[$data['id']])) {
+            throw new UserException('Invalid user');
+        }
+        $data['token'] = $data;
         return $this->userStorage[$data['id']] = new User($data['id'], $data);
     }
     /**
