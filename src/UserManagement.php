@@ -2,144 +2,26 @@
 
 namespace vakata\user;
 
-use vakata\jwt\JWT;
-
 class UserManagement implements UserManagementInterface
 {
-    protected $options = [];
     protected $permissions = [];
     protected $users = [];
     protected $groups = [];
 
     /**
      * create an instance
-     *
-     * * Options include:
-     * * issuer - the issuer to use when signing JWTs
-     * * cryptokey - the key to used to encrypt / decrypt JWTs
-     * * key - the key to use when signing JWT's (could be an array of keys)
-     * * validateIpAddress - the required IP address of the user (defaults to `null`)
-     * * validateUserAgent - the required user agent of the user (defaults to `null`)
-     * * validateSessionID - the required session ID of the user (defaults to `null`)
-     *
      * @method __construct
      * @param  array       $groups       array of GroupInterface objects
      * @param  array       $permissions  array of strings
-     * @param  array       $options      the instance's options described above
      */
     public function __construct(array $groups = [], array $permissions = [], array $options = [])
     {
-        $this->options = array_merge([
-            'issuer' => null,
-            'key' => null,
-            'cryptokey' => null,
-            'validateIpAddress' => null,
-            'validateUserAgent' => null,
-            'validateSessionID' => null
-        ], $options);
         $this->permissions = $permissions;
         foreach ($groups as $group) {
             $this->groups[$group->getID()] = $group;
             $this->permissions = $this->permissions + $group->getPermissions();
         }
         $this->permissions = array_unique(array_values($this->permissions));
-    }
-    /**
-     * Signs and encrypts a given JWT using the set of rules provided when creating the instance.
-     * @method secureToken
-     * @param  JWT        $token    the token to sign
-     * @param  int|string $validity the validity of the token in seconds or a strtotime expression (defaults to `86400`)
-     * @return string               the signed (and optionally encrypted) token
-     */
-    public function secureToken(JWT $token, int $validity = 86400) : string
-    {
-        $validity = is_numeric($validity) ? time() + $validity : strtotime($validity);
-        if ($validity === false) {
-            throw new UserException('Invalid token expire time');
-        }
-        $token->setExpiration($validity);
-
-        if ($this->options['issuer']) {
-            $token->setIssuer($this->options['issuer']);
-        }
-        if ($this->options['validateIpAddress']) {
-            $token->setClaim('ip', $this->options['validateIpAddress']);
-        }
-        if ($this->options['validateUserAgent']) {
-            $token->setClaim('ua', $this->options['validateUserAgent']);
-        }
-        if ($this->options['validateSessionID']) {
-            $token->setClaim('sess', session_id());
-        }
-        if ($this->options['key']) {
-            $token->sign($this->options['key']);
-        }
-        return $this->options['cryptokey'] ?
-            $token->toString($this->options['cryptokey']) :
-            $token->toString();
-    }
-    /**
-     * Parse, verify and validate a token.
-     * @method parseToken
-     * @param  JWT|string    $token the token
-     * @return array of token claims
-     */
-    public function parseToken($token) : array
-    {
-        if (is_string($token)) {
-            try {
-                $token = JWT::fromString($token, $this->options['cryptokey']);
-            } catch (TokenException $e) {
-                throw new UserException('Invalid token');
-            }
-        }
-        if (!$token->isSigned() && isset($this->options['key'])) {
-            throw new UserException('Token not signed');
-        }
-        if (!$token->verifyHash($this->options['key'])) {
-            throw new UserException('Invalid token signature');
-        }
-        $verify = [];
-        if (isset($this->options['issuer'])) {
-            $verify['iss'] = $this->options['issuer'];
-        }
-        if (isset($this->options['validateIpAddress'])) {
-            $verify['ip'] = $this->options['validateIpAddress'];
-        }
-        if (isset($this->options['validateUserAgent'])) {
-            $verify['ua'] = $this->options['validateUserAgent'];
-        }
-        if (isset($this->options['validateSessionID'])) {
-            $verify['sess'] = $this->options['validateSessionID'];
-        }
-        if (!$token->isValid($verify)) {
-            throw new UserException('Token not valid');
-        }
-
-        return array_merge([
-            'provider'   => null,
-            'id'         => null,
-            'mail'       => null,
-            'name'       => null
-        ], $token->getClaims());
-    }
-    /**
-     * Creates a user instance from a token.
-     * @method fromToken
-     * @param  JWT|string    $token the token
-     * @param  boolean       $register create a new user if the token is valid, defaults to `false`
-     * @return \vakata\user\User    the new user instance
-     */
-    public function fromToken($token, $register = false) : UserInterface
-    {
-        $data = $this->parseToken($token);
-        $data['providerId'] = $data['id'];
-        $data['id'] = $data['providerId'] . '@' . $data['provider'];
-        if (!$register && !isset($this->userStorage[$data['id']])) {
-            throw new UserException('Invalid user');
-        }
-        $data['token'] = $data;
-        return $this->userStorage[$data['id']] = new User($data['id'], $data);
     }
     /**
      * Get the list of permissions in the system.

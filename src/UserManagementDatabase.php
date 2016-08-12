@@ -1,8 +1,6 @@
 <?php
 namespace vakata\user;
 
-use vakata\jwt\JWT;
-use vakata\jwt\TokenException;
 use vakata\database\DatabaseInterface;
 
 class UserManagementDatabase extends UserManagement
@@ -12,7 +10,7 @@ class UserManagementDatabase extends UserManagement
     /**
      * Static init method.
      *
-     * In addition to the `UserManagement` options, the keys also include:
+     * Options include:
      * * tableUsers - the table to store the users in (defaults to "users")
      * * tableProviders - the table linking users to providers (defaults to "users_providers")
      * * tableGroups - the table containing the available groups (defaults to "users_groups")
@@ -38,6 +36,7 @@ class UserManagementDatabase extends UserManagement
             'tableUserGroups'        => 'users_user_groups'
         ], $options);
 
+        $this->options = $options;
         $this->db = $db;
 
         $temp = $this->db->all("
@@ -59,40 +58,10 @@ class UserManagementDatabase extends UserManagement
             $groups[$id] = new Group($id, $permissions);
         }
 
-        $permissions = $this->db->all("SELECT * FROM " . $options['tablePermissions'] . " ORDER BY perm");
+        $permissions = $this->db->all("SELECT perm FROM " . $options['tablePermissions'] . " ORDER BY perm");
 
-        parent::__construct($groups, $permissions, $options);
+        parent::__construct($groups, $permissions);
     }
-    /**
-     * Creates a user instance from a token.
-     * @method fromToken
-     * @param  JWT|string    $token the token
-     * @param  boolean       $register create a new user if the token is valid, defaults to `false`
-     * @return \vakata\user\User    the new user instance
-     */
-    public function fromToken($token, $register = false) : UserInterface
-    {
-        $data = $this->parseToken($token);
-        $data['providerId'] = $data['id'];
-        $data['id'] = $data['providerId'] . '@' . $data['provider'];
-
-        $user = $this->db->one(
-            "SELECT user FROM " . $this->options['tableProviders'] . " WHERE provider = ? AND id = ?",
-            [ $data['provider'], $data['providerId'] ]
-        );
-        if (!$user && !$register) {
-            throw new UserException('Invalid user');
-        }
-        if (!$user) {
-            $temp = new User(null, $data);
-            $this->saveUser($temp);
-            $user = $this->getID();
-        }
-        $user = $this->getUser($user);
-        $user->set('token', $data);
-        return $user;
-    }
-
     /**
      * save a user instance
      * @method saveUser
@@ -188,6 +157,25 @@ class UserManagementDatabase extends UserManagement
             parent::saveUser($user);
             return $user;
         }
+    }
+
+    /**
+     * Get a user instance by provider ID
+     * @method getUserByProviderID
+     * @param  string  $provider the authentication provider
+     * @param  mixed   $id the user ID
+     * @return \vakata\user\UserInterface a user instance
+     */
+    public function getUserByProviderID($provider, $id) : UserInterface
+    {
+        $user = $this->db->one(
+            "SELECT user FROM " . $this->options['tableProviders'] . " WHERE provider = ? AND id = ?",
+            [ $provider, $id ]
+        );
+        if (!$user) {
+            throw new UserException('Invalid user');
+        }
+        return $this->getUser($user);
     }
 
     /**
