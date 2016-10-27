@@ -8,7 +8,6 @@ class Group implements GroupInterface
 
     /**
      * Create a new group instance.
-     * @method __construct
      * @param  mixed       $id          the group ID
      * @param  array       $permissions optional array of permissions the group has (defaults to an empty array)
      */
@@ -19,7 +18,6 @@ class Group implements GroupInterface
     }
     /**
      * get the group's ID
-     * @method getID
      * @return mixed the group ID
      */
     public function getID()
@@ -28,7 +26,6 @@ class Group implements GroupInterface
     }
     /**
      * set the group's ID
-     * @method setID
      * @return self
      */
     public function setID($id)
@@ -38,7 +35,6 @@ class Group implements GroupInterface
     }
     /**
      * Get the group's permissions
-     * @method getPermissions
      * @return  array  the group's permission list
      */
     public function getPermissions() : array
@@ -47,7 +43,6 @@ class Group implements GroupInterface
     }
     /**
      * Does the group have a permission.
-     * @method hasPermission
      * @param  string        $permission the permission to check for
      * @return boolean                   does the group have that permission
      */
@@ -57,7 +52,6 @@ class Group implements GroupInterface
     }
     /**
      * Give the group a new permission
-     * @method addPermission
      * @param  string        $permission the permission to give
      * @return  self
      */
@@ -69,7 +63,6 @@ class Group implements GroupInterface
     }
     /**
      * Remove a permission the group has.
-     * @method deletePermission
      * @param  string           $permission the permission to remove
      * @return  self
      */

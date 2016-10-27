@@ -18,7 +18,6 @@ class UserManagementDatabase extends UserManagement
      * * tableGroupsPermissions - the table containing each group's permissions (defaults to "users_groups_permissions")
      * * tableUserGroups - the table containing each user's groups (defaults to "users_user_groups")
      * * tableUserPermissions - the table containing each user's permissions (defaults to "users_user_permissions")
-     * @method init
      * @param  \vakata\database\DatabaseInterface $db the DB instance
      * @param  array  $options the options for future instances
      */
@@ -64,7 +63,6 @@ class UserManagementDatabase extends UserManagement
     }
     /**
      * save a user instance
-     * @method saveUser
      * @param  \vakata\user\UserInterface $user the user to store
      * @return self
      */
@@ -119,7 +117,6 @@ class UserManagementDatabase extends UserManagement
 
     /**
      * Get a user instance by ID
-     * @method getUser
      * @param  mixed  $id the user ID
      * @return \vakata\user\UserInterface a user instance
      */
@@ -161,7 +158,6 @@ class UserManagementDatabase extends UserManagement
 
     /**
      * Get a user instance by provider ID
-     * @method getUserByProviderID
      * @param  string  $provider the authentication provider
      * @param  mixed   $id the user ID
      * @return \vakata\user\UserInterface a user instance
@@ -180,7 +176,6 @@ class UserManagementDatabase extends UserManagement
 
     /**
      * Get a group by its ID
-     * @method getGroup
      * @param  string   $id the ID to search for
      * @return \vakata\user\GroupInterface       the group instance
      */
@@ -203,7 +198,6 @@ class UserManagementDatabase extends UserManagement
     }
     /**
      * Save a group.
-     * @method saveGroup
      * @param  \vakata\user\GroupInterface $group the group to save
      * @return self
      */

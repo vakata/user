@@ -15,7 +15,6 @@ class User implements UserInterface
 
     /**
      * Create a new user instance.
-     * @method __construct
      * @param  mixed       $id          the user ID
      * @param  array       $data        optional array of user data (defaults to an empty array)
      * @param  array       $groups      optional array of GroupInterface objects the user belongs to (defaults to none)
@@ -33,7 +32,6 @@ class User implements UserInterface
     }
     /**
      * get the user's ID
-     * @method getID
      * @return mixed the user ID
      */
     public function getID()
@@ -42,7 +40,6 @@ class User implements UserInterface
     }
     /**
      * set the user's ID
-     * @method setID
      * @return self
      */
     public function setID($id) : UserInterface
@@ -52,7 +49,6 @@ class User implements UserInterface
     }
     /**
      * get the user's data fields
-     * @method getData
      * @return mixed the user's data
      */
     public function getData() : array
@@ -61,7 +57,6 @@ class User implements UserInterface
     }
     /**
      * Get a piece of user data.
-     * @method get
      * @param  string $key       the data to search for - use '.' to traverse arrays
      * @param  mixed  $default   optional default to return if the key does not exist, defaults to `null`
      * @param  string $separator the separator to use when traversing arrays, defaults to '.'
@@ -76,7 +71,6 @@ class User implements UserInterface
     }
     /**
      * Set a piece of user data.
-     * @method set
      * @param  string $key       the key to set, use '.' to traverse arrays
      * @param  mixed  $value     the new value for the key
      * @param  string $separator the separator to use when traversing arrays, defaults to '.'
@@ -87,7 +81,6 @@ class User implements UserInterface
     }
     /**
      * Delete an element from the storage.
-     * @method set
      * @param  string $key       the element to delete (can be a deeply nested element of the data array)
      * @param  string $separator the string used to separate levels of the array, defaults to "."
      * @return mixed|null        the value that was just deleted or null
@@ -107,7 +100,6 @@ class User implements UserInterface
     }
     /**
      * Is the user in a group.
-     * @method inGroup
      * @param  string|\vakata\user\GroupInterface  $group the group to check for
      * @return boolean        is the user in the group
      */
@@ -118,7 +110,6 @@ class User implements UserInterface
     }
     /**
      * Get the user's groups
-     * @method getGroups
      * @return  array  the user's group list
      */
     public function getGroups() : array
@@ -127,7 +118,6 @@ class User implements UserInterface
     }
     /**
      * Get the user's primary group
-     * @method getPrimaryGroup
      * @param  string      $group the user's primary group
      */
     public function getPrimaryGroup()
@@ -136,7 +126,6 @@ class User implements UserInterface
     }
     /**
      * Does the user have a permission.
-     * @method hasPermission
      * @param  string        $permission the permission to check for
      * @return boolean                   does the user have that permission
      */
@@ -151,7 +140,6 @@ class User implements UserInterface
     }
     /**
      * Get the user's permissions
-     * @method getPermissions
      * @return  array  the user's permission list
      */
     public function getPermissions() : array
@@ -164,7 +152,6 @@ class User implements UserInterface
     }
     /**
      * Add the user to a group
-     * @method addGroup
      * @param  \vakata\user\GroupInterface   $group the group to add the user to
      * @return  self
      */
@@ -175,7 +162,6 @@ class User implements UserInterface
     }
     /**
      * Remove a user form a group
-     * @method deleteGroup
      * @param  vakata\user\GroupInterface      $group the group to remove the user from
      * @return  self
      */
@@ -192,7 +178,6 @@ class User implements UserInterface
 
     /**
      * Set the user's primary group
-     * @method setPrimaryGroup
      * @param  vakata\user\GroupInterface      $group the group to set as primary
      * @return  self
      */

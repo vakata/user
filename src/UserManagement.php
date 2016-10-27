@@ -10,7 +10,6 @@ class UserManagement implements UserManagementInterface
 
     /**
      * create an instance
-     * @method __construct
      * @param  array       $groups       array of GroupInterface objects
      * @param  array       $permissions  array of strings
      */
@@ -25,7 +24,6 @@ class UserManagement implements UserManagementInterface
     }
     /**
      * Get the list of permissions in the system.
-     * @method permissions
      * @return array      the permissions available
      */
     public function permissions() : array
@@ -34,7 +32,6 @@ class UserManagement implements UserManagementInterface
     }
     /**
      * Does a permission exist.
-     * @method permissionExists
      * @param  string           $permission the permission to check for
      * @return boolean                      does the permission exist
      */
@@ -44,7 +41,6 @@ class UserManagement implements UserManagementInterface
     }
     /**
      * Get a list of groups available in the system.
-     * @method groups
      * @return array an array of GroupInterface objects
      */
     public function groups() : array
@@ -53,7 +49,6 @@ class UserManagement implements UserManagementInterface
     }
     /**
      * Does a group exist.
-     * @method groupExists
      * @param  string      $group the group to check for
      * @return boolean            does the group exist
      */
@@ -64,7 +59,6 @@ class UserManagement implements UserManagementInterface
     
     /**
      * Get a user instance by ID
-     * @method getUser
      * @param  mixed  $id the user ID
      * @return \vakata\user\UserInterface a user instance
      */
@@ -77,7 +71,6 @@ class UserManagement implements UserManagementInterface
     }
     /**
      * save a user instance
-     * @method saveUser
      * @param  \vakata\user\UserInterface $user the user to store
      * @return self
      */
@@ -88,7 +81,6 @@ class UserManagement implements UserManagementInterface
     }
     /**
      * Get a group by its ID
-     * @method getGroup
      * @param  string   $id the ID to search for
      * @return \vakata\user\GroupInterface       the group instance
      */
@@ -101,7 +93,6 @@ class UserManagement implements UserManagementInterface
     }
     /**
      * Save a group.
-     * @method saveGroup
      * @param  \vakata\user\GroupInterface $group the group to save
      * @return self
      */
