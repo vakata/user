@@ -5,7 +5,8 @@ use vakata\database\DatabaseInterface;
 
 class UserManagementDatabase extends UserManagement
 {
-    protected $db = null;
+    protected $db;
+    protected $options;
 
     /**
      * Static init method.
@@ -23,9 +24,6 @@ class UserManagementDatabase extends UserManagement
      */
     public function __construct(DatabaseInterface $db, array $options = [])
     {
-        if (!$db) {
-            throw new UserException("Please provide a DB connection");
-        }
         $options = array_merge([
             'tableUsers'             => 'users',
             'tableProviders'         => 'users_providers',

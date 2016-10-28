@@ -64,10 +64,10 @@ class UserManagement implements UserManagementInterface
      */
     public function getUser($id) : UserInterface
     {
-        if (!isset($this->userStorage[$id])) {
+        if (!isset($this->users[$id])) {
             throw new UserException('User not found', 404);
         }
-        return $this->userStorage[$id];
+        return $this->users[$id];
     }
     /**
      * save a user instance
@@ -76,7 +76,7 @@ class UserManagement implements UserManagementInterface
      */
     public function saveUser(UserInterface $user) : UserManagementInterface
     {
-        $this->userStorage[$user->getID()] = $user;
+        $this->users[$user->getID()] = $user;
         return $this;
     }
     /**
