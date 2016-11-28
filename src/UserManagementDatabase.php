@@ -84,10 +84,18 @@ class UserManagementDatabase extends UserManagement
             }
             // if there was not user with that email address, or the email was invalid - register a new user
             if (!$userId) {
-                $userId = $this->db->query(
-                    "INSERT INTO " . $this->options['tableUsers'] . " (name, mail) VALUES (?, ?)",
-                    [ (string)$data['name'], (string)$data['mail'] ]
-                )->insertId();
+                if ($this->db->driver() === 'oracle') {
+                    $userId = 0;
+                    $this->db->query(
+                        "INSERT INTO " . $this->options['tableUsers'] . " (name, mail) VALUES (?, ?) RETURNING user INTO ?",
+                        [ (string)$data['name'], (string)$data['mail'], &$userId ]
+                    );
+                } else {
+                    $userId = $this->db->query(
+                        "INSERT INTO " . $this->options['tableUsers'] . " (name, mail) VALUES (?, ?)",
+                        [ (string)$data['name'], (string)$data['mail'] ]
+                    )->insertId();
+                }
             }
             if ($data['provider'] && $data['providerId']) {
                 $this->db->query(
@@ -96,11 +104,15 @@ class UserManagementDatabase extends UserManagement
                 );
             }
             foreach ($user->getGroups() as $group) {
-                $this->db->query(
-                    "INSERT INTO " . $this->options['tableUserGroups'] . " (user, grp, created) VALUES (?, ?, ?)
-                     ON DUPLICATE KEY UPDATE user = user",
-                    [ $userId, $group->getID(), date('Y-m-d H:i:s') ]
-                );
+                if (!$this->db->one(
+                    "SELECT 1 FROM " . $this->options['tableUserGroups'] . " WHERE user = ? AND grp = ?",
+                    [ $userId, $group->getID() ]
+                )) {
+                    $this->db->query(
+                        "INSERT INTO " . $this->options['tableUserGroups'] . " (user, grp, created) VALUES (?, ?, ?)",
+                        [ $userId, $group->getID(), date('Y-m-d H:i:s') ]
+                    );
+                }
             }
             $this->db->commit();
             $user->setID($userId);
@@ -203,22 +215,35 @@ class UserManagementDatabase extends UserManagement
     {
         $trans = $this->db->begin();
         try {
-            $this->db->query(
-                "INSERT INTO " . $this->options['tableGroups'] . " (grp, created) VALUES (?, ?)
-                 ON DUPLICATE KEY UPDATE grp = grp",
-                [ $group->getID(), date('Y-m-d H:i:s') ]
-            );
+            if (!$this->db->one(
+                "SELECT 1 FROM " . $this->options['tableGroups'] . " WHERE grp = ?",
+                [ $group->getID() ]
+            )) {
+                $this->db->query(
+                    "INSERT INTO " . $this->options['tableGroups'] . " (grp, created) VALUES (?, ?)",
+                    [ $group->getID(), date('Y-m-d H:i:s') ]
+                );
+            }
             foreach ($group->getPermissions() as $permission) {
-                $this->db->query(
-                    "INSERT INTO " . $this->options['tablePermissions'] . " (perm, created) VALUES (?, ?)
-                     ON DUPLICATE KEY UPDATE perm = perm",
-                    [ $permission, date('Y-m-d H:i:s') ]
-                );
-                $this->db->query(
-                    "INSERT INTO " . $this->options['tableGroupsPermissions'] . " (grp, perm, created) VALUES (?, ?, ?)
-                     ON DUPLICATE KEY UPDATE grp = grp",
-                    [ $group->getID(), $permission, date('Y-m-d H:i:s') ]
-                );
+                if (!$this->db->one(
+                    "SELECT 1 FROM " . $this->options['tablePermissions'] . " WHERE perm = ?",
+                    [ $permission ]
+                )) {
+                    $this->db->query(
+                        "INSERT INTO " . $this->options['tablePermissions'] . " (perm, created) VALUES (?, ?)
+                        ON DUPLICATE KEY UPDATE perm = perm",
+                        [ $permission, date('Y-m-d H:i:s') ]
+                    );
+                }
+                if (!$this->db->one(
+                    "SELECT 1 FROM " . $this->options['tableGroupsPermissions'] . " WHERE grp = ? AND perm = ?",
+                    [ $group->getID(), $permission ]
+                )) {
+                    $this->db->query(
+                        "INSERT INTO " . $this->options['tableGroupsPermissions'] . " (grp, perm, created) VALUES (?, ?, ?)",
+                        [ $group->getID(), $permission, date('Y-m-d H:i:s') ]
+                    );
+                }
             }
             $this->db->commit();
             parent::saveGroup($group);
