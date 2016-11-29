@@ -78,7 +78,7 @@ class UserManagementDatabase extends UserManagement
             // if there is a valid email address - try to locate a user with this mail address
             if (!$userId && filter_var((string)$data['mail'], FILTER_VALIDATE_EMAIL)) {
                 $userId = $this->db->one(
-                    "SELECT user FROM " . $this->options['tableUsers'] . " WHERE mail = ?",
+                    "SELECT usr FROM " . $this->options['tableUsers'] . " WHERE mail = ?",
                     [ (string)$data['mail'] ]
                 );
             }
@@ -87,7 +87,7 @@ class UserManagementDatabase extends UserManagement
                 if ($this->db->driver() === 'oracle') {
                     $userId = 0;
                     $this->db->query(
-                        "INSERT INTO " . $this->options['tableUsers'] . " (name, mail) VALUES (?, ?) RETURNING user INTO ?",
+                        "INSERT INTO " . $this->options['tableUsers'] . " (name, mail) VALUES (?, ?) RETURNING usr INTO ?",
                         [ (string)$data['name'], (string)$data['mail'], &$userId ]
                     );
                 } else {
@@ -99,17 +99,17 @@ class UserManagementDatabase extends UserManagement
             }
             if ($data['provider'] && $data['providerId']) {
                 $this->db->query(
-                    "INSERT INTO " . $this->options['tableProviders'] . " (provider, id, user, created) VALUES (?, ?, ?, ?)",
+                    "INSERT INTO " . $this->options['tableProviders'] . " (provider, id, usr, created) VALUES (?, ?, ?, ?)",
                     [ (string)$data['provider'], (string)$data['providerId'], $userId, date('Y-m-d H:i:s') ]
                 );
             }
             foreach ($user->getGroups() as $group) {
                 if (!$this->db->one(
-                    "SELECT 1 FROM " . $this->options['tableUserGroups'] . " WHERE user = ? AND grp = ?",
+                    "SELECT 1 FROM " . $this->options['tableUserGroups'] . " WHERE usr = ? AND grp = ?",
                     [ $userId, $group->getID() ]
                 )) {
                     $this->db->query(
-                        "INSERT INTO " . $this->options['tableUserGroups'] . " (user, grp, created) VALUES (?, ?, ?)",
+                        "INSERT INTO " . $this->options['tableUserGroups'] . " (usr, grp, created) VALUES (?, ?, ?)",
                         [ $userId, $group->getID(), date('Y-m-d H:i:s') ]
                     );
                 }
@@ -137,7 +137,7 @@ class UserManagementDatabase extends UserManagement
         }
         catch (UserException $e) {
             $data = $this->db->one(
-                "SELECT * FROM " . $this->options['tableUsers'] . " WHERE user = ?",
+                "SELECT * FROM " . $this->options['tableUsers'] . " WHERE usr = ?",
                 [ $id ]
             );
             if (!$data) {
@@ -147,20 +147,20 @@ class UserManagementDatabase extends UserManagement
             $primary = null;
 
             $groups = $this->db->all(
-                "SELECT grp FROM " . $this->options['tableUserGroups'] . " WHERE user = ? ORDER BY grp",
+                "SELECT grp FROM " . $this->options['tableUserGroups'] . " WHERE usr = ? ORDER BY grp",
                 [ $id ]
             );
             $groups = array_map(function ($v) {
                 return $this->getGroup($v);
             }, $groups);
             $primary = $this->db->one(
-                "SELECT grp FROM " . $this->options['tableUserGroups'] . " WHERE user = ? AND main = 1",
+                "SELECT grp FROM " . $this->options['tableUserGroups'] . " WHERE usr = ? AND main = 1",
                 [ $id ]
             );
             if ($primary) {
                 $primary = $this->getGroup($primary);
             }
-            $user = new User($data['user'], $data, $groups, $primary);
+            $user = new User($data['usr'], $data, $groups, $primary);
             parent::saveUser($user);
             return $user;
         }
@@ -175,7 +175,7 @@ class UserManagementDatabase extends UserManagement
     public function getUserByProviderID($provider, $id) : UserInterface
     {
         $user = $this->db->one(
-            "SELECT user FROM " . $this->options['tableProviders'] . " WHERE provider = ? AND id = ?",
+            "SELECT usr FROM " . $this->options['tableProviders'] . " WHERE provider = ? AND id = ?",
             [ $provider, $id ]
         );
         if (!$user) {
