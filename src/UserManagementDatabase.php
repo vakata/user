@@ -43,7 +43,7 @@ class UserManagementDatabase extends UserManagement
             FROM " . $options['tableGroups'] . " g
             LEFT JOIN " . $options['tableGroupsPermissions'] . " p ON p.grp = g.grp
             ORDER BY g.grp, p.perm
-        ");
+        ", null, null, false, 'assoc_lc');
         $groups = [];
         foreach ($temp as $row) {
             if (!isset($groups[$row['grp']])) {
@@ -138,7 +138,7 @@ class UserManagementDatabase extends UserManagement
         catch (UserException $e) {
             $data = $this->db->one(
                 "SELECT * FROM " . $this->options['tableUsers'] . " WHERE usr = ?",
-                [ $id ]
+                [ $id ], null, false, 'assoc_lc'
             );
             if (!$data) {
                 throw new UserException("User does not exist");
