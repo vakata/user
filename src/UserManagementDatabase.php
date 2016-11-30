@@ -138,7 +138,7 @@ class UserManagementDatabase extends UserManagement
         catch (UserException $e) {
             $data = $this->db->one(
                 "SELECT * FROM " . $this->options['tableUsers'] . " WHERE usr = ?",
-                [ $id ], null, false, 'assoc_lc'
+                [ $id ], 'assoc_lc'
             );
             if (!$data) {
                 throw new UserException("User does not exist");
