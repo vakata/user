@@ -49,7 +49,9 @@ class UserManagementDatabase extends UserManagement
             if (!isset($groups[$row['grp']])) {
                 $groups[$row['grp']] = [];
             }
-            $groups[$row['grp']][] = $row['perm'];
+            if ($row['perm']) {
+                $groups[$row['grp']][] = $row['perm'];
+            }
         }
         foreach ($groups as $id => $permissions) {
             $groups[$id] = new Group($id, $permissions);
@@ -75,12 +77,16 @@ class UserManagementDatabase extends UserManagement
         $this->db->begin();
         try {
             $userId = $user->getID();
-            // if there is a valid email address - try to locate a user with this mail address
-            if (!$userId && filter_var((string)$data['mail'], FILTER_VALIDATE_EMAIL)) {
-                $userId = $this->db->one(
-                    "SELECT usr FROM " . $this->options['tableUsers'] . " WHERE mail = ?",
-                    [ (string)$data['mail'] ]
-                );
+            if ($userId && !$this->db->one("SELECT 1 FROM " . $this->options['tableUsers'] . " WHERE usr = ?")) {
+                $userId = null;
+            } else {
+                // if there is a valid email address - try to locate a user with this mail address
+                if (!$userId && filter_var((string)$data['mail'], FILTER_VALIDATE_EMAIL)) {
+                    $userId = $this->db->one(
+                        "SELECT usr FROM " . $this->options['tableUsers'] . " WHERE mail = ?",
+                        [ (string)$data['mail'] ]
+                    );
+                }
             }
             // if there was not user with that email address, or the email was invalid - register a new user
             if (!$userId) {
