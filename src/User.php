@@ -122,7 +122,7 @@ class User implements UserInterface
      */
     public function getPrimaryGroup()
     {
-        return $this->primary !== null ? $this->primary : (count($this->groups) ? current($this->groups[0]) : null);
+        return $this->primary !== null ? $this->primary : (count($this->groups) ? current($this->groups) : null);
     }
     /**
      * Does the user have a permission.
