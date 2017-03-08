@@ -70,9 +70,7 @@ class UserManagementDatabase extends UserManagement
     {
         $data = array_merge([
             'name'       => null,
-            'mail'       => null,
-            'provider'   => null,
-            'providerId' => null
+            'mail'       => null
         ], $user->getData());
         $this->db->begin();
         try {
@@ -103,12 +101,6 @@ class UserManagementDatabase extends UserManagement
                     )->insertId();
                 }
             }
-            if ($data['provider'] && $data['providerId']) {
-                $this->db->query(
-                    "INSERT INTO " . $this->options['tableProviders'] . " (provider, id, usr, created) VALUES (?, ?, ?, ?)",
-                    [ (string)$data['provider'], (string)$data['providerId'], $userId, date('Y-m-d H:i:s') ]
-                );
-            }
             foreach ($user->getGroups() as $group) {
                 if (!$this->db->one(
                     "SELECT 1 FROM " . $this->options['tableUserGroups'] . " WHERE usr = ? AND grp = ?",
@@ -127,6 +119,36 @@ class UserManagementDatabase extends UserManagement
         }
         catch (\Exception $e) {
             $this->db->rollback();
+            throw $e;
+        }
+    }
+    /**
+     * Delete a user.
+     * @param  \vakata\user\UserInterface $user the user to delete
+     * @return self
+     */
+    public function deleteUser(UserInterface $user) : UserManagementInterface
+    {
+        $trans = $this->db->begin();
+        try {
+            $this->db->query(
+                "DELETE FROM " . $this->options['tableUserGroups'] . " WHERE usr = ?",
+                [ $user->getID() ]
+            );
+            $this->db->query(
+                "DELETE FROM " . $this->options['tableProviders'] . " WHERE usr = ?",
+                [ $user->getID() ]
+            );
+            $this->db->query(
+                "DELETE FROM " . $this->options['tableUsers'] . " WHERE usr = ?",
+                [ $group->getID() ]
+            );
+            $this->db->commit();
+            parent::deleteUser($user);
+            return $this;
+        }
+        catch (\Exception $e) {
+            $this->db->rollback($trans);
             throw $e;
         }
     }
@@ -149,9 +171,7 @@ class UserManagementDatabase extends UserManagement
             if (!$data) {
                 throw new UserException("User does not exist");
             }
-            $data = array_merge([ 'provider' => '', 'providerId' => $id ], $data);
             $primary = null;
-
             $groups = $this->db->all(
                 "SELECT grp FROM " . $this->options['tableUserGroups'] . " WHERE usr = ? ORDER BY grp",
                 [ $id ]
@@ -185,9 +205,45 @@ class UserManagementDatabase extends UserManagement
             [ $provider, $id ]
         );
         if (!$user) {
-            throw new UserException('Invalid user');
+            throw new UserException('User not found', 404);
         }
-        return $this->getUser($user);
+        $user = $this->getUser($user);
+        $this->db->query(
+            "UPDATE " . $this->options['tableProviders'] . " SET used = ? WHERE provider = ? AND id = ?",
+            [ date('Y-m-d H:i:s'), $provider, $id ]
+        );
+        return $user;
+    }
+    public function getProviderIDsByUser(UserInterface $user) : array
+    {
+        return $this->db->all(
+            "SELECT * FROM " . $this->options['tableProviders'] . " WHERE usr = ?",
+            $user->getID()
+        );
+    }
+    public function addProviderID(UserInterface $user, $provider, $id) : UserInterface
+    {
+        $this->db->query(
+            "INSERT INTO " . $this->options['tableProviders'] . " (provider, id, usr, created) VALUES (?, ?, ?, ?)",
+            [ $provider, $id, $user->getID(), date('Y-m-d H:i:s') ]
+        );
+        return $this;
+    }
+    public function deleteProviderID($provider, $id) : UserInterface
+    {
+        $this->db->query(
+            "DELETE FROM " . $this->options['tableProviders'] . " WHERE provider = ? AND id = ?",
+            [ $provider, $id ]
+        );
+        return $this;
+    }
+    public function deleteUserProviders(UserInterface $user) : UserInterface
+    {
+        $this->db->query(
+            "DELETE FROM " . $this->options['tableProviders'] . " WHERE usr = ?",
+            [ $user->getID() ]
+        );
+        return $this;
     }
 
     /**
@@ -230,14 +286,17 @@ class UserManagementDatabase extends UserManagement
                     [ $group->getID(), date('Y-m-d H:i:s') ]
                 );
             }
+            $this->db->query(
+                "DELETE FROM " . $this->options['tableGroupsPermissions'] . " WHERE grp = ? AND perm NOT IN (??)",
+                [ $group->getID(), $group->getPermissions() ]
+            );
             foreach ($group->getPermissions() as $permission) {
                 if (!$this->db->one(
                     "SELECT 1 FROM " . $this->options['tablePermissions'] . " WHERE perm = ?",
                     [ $permission ]
                 )) {
                     $this->db->query(
-                        "INSERT INTO " . $this->options['tablePermissions'] . " (perm, created) VALUES (?, ?)
-                        ON DUPLICATE KEY UPDATE perm = perm",
+                        "INSERT INTO " . $this->options['tablePermissions'] . " (perm, created) VALUES (?, ?)",
                         [ $permission, date('Y-m-d H:i:s') ]
                     );
                 }
@@ -253,6 +312,87 @@ class UserManagementDatabase extends UserManagement
             }
             $this->db->commit();
             parent::saveGroup($group);
+            return $this;
+        }
+        catch (\Exception $e) {
+            $this->db->rollback($trans);
+            throw $e;
+        }
+    }
+    /**
+     * Delete a group.
+     * @param  \vakata\user\GroupInterface $group the group to delete
+     * @return self
+     */
+    public function deleteGroup(GroupInterface $group) : UserManagementInterface
+    {
+        $trans = $this->db->begin();
+        try {
+            $this->db->query(
+                "DELETE FROM " . $this->options['tableUserGroups'] . " WHERE grp = ?",
+                [ $group->getID() ]
+            );
+            $this->db->query(
+                "DELETE FROM " . $this->options['tableGroupsPermissions'] . " WHERE grp = ?",
+                [ $group->getID() ]
+            );
+            $this->db->query(
+                "DELETE FROM " . $this->options['tableGroups'] . " WHERE grp = ?",
+                [ $group->getID() ]
+            );
+            $this->db->commit();
+            parent::deleteGroup($group);
+            return $this;
+        }
+        catch (\Exception $e) {
+            $this->db->rollback($trans);
+            throw $e;
+        }
+    }
+    /**
+     * Add a permission.
+     * @param  string $permission the permission to add
+     * @return self
+     */
+    public function addPermission(string $permission) : UserManagementInterface
+    {
+        $trans = $this->db->begin();
+        try {
+            if (!$this->db->one(
+                "SELECT 1 FROM " . $this->options['tablePermissions'] . " WHERE perm = ?",
+                [ $permission ]
+            )) {
+                $this->db->query(
+                    "INSERT INTO " . $this->options['tablePermissions'] . " (perm, created) VALUES (?, ?)",
+                    [ $permission, date('Y-m-d H:i:s') ]
+                );
+            }
+            parent::addPermission($permission);
+            return $this;
+        }
+        catch (\Exception $e) {
+            $this->db->rollback($trans);
+            throw $e;
+        }
+    }
+    /**
+     * Remove a permission.
+     * @param  string $permission the permission to remove
+     * @return self
+     */
+    public function deletePermission(string $permission) : UserManagementInterface
+    {
+        $trans = $this->db->begin();
+        try {
+            $this->db->query(
+                "DELETE FROM " . $this->options['tableGroupsPermissions'] . " WHERE perm = ?",
+                [ $permission ]
+            );
+            $this->db->query(
+                "DELETE FROM " . $this->options['tablePermissions'] . " WHERE perm = ?",
+                [ $permission ]
+            );
+            parent::deletePermission($permission);
             return $this;
         }
         catch (\Exception $e) {
