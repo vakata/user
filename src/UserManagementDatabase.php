@@ -87,25 +87,12 @@ class UserManagementDatabase extends UserManagement
                 }
             }
             
+            unset($data['usr']);
             // if there was not user with that email address, or the email was invalid - register a new user
             if (!$userId) {
-                if ($this->db->driver() === 'oracle') {
-                    $userId = 0;
-                    $this->db->query(
-                        "INSERT INTO " . $this->options['tableUsers'] . " (name, mail) VALUES (?, ?) RETURNING usr INTO ?",
-                        [ (string)$data['name'], (string)$data['mail'], &$userId ]
-                    );
-                } else {
-                    $userId = $this->db->query(
-                        "INSERT INTO " . $this->options['tableUsers'] . " (name, mail) VALUES (?, ?)",
-                        [ (string)$data['name'], (string)$data['mail'] ]
-                    )->insertId();
-                }
+                $userId = $this->db->table($this->options['tableUsers'])->insert($data)['usr'];
             } else {
-                $this->db->query(
-                    "UPDATE " . $this->options['tableUsers'] . " SET name = ?, mail = ? WHERE usr = ?)",
-                    [ (string)$data['name'], (string)$data['mail'], $userId ]
-                );
+                $this->db->table($this->options['tableUsers'])->update($data);
             }
             $groupIDs = array_map(function ($v) {
                 return $v->getID();
