@@ -75,7 +75,7 @@ class UserManagementDatabase extends UserManagement
         $this->db->begin();
         try {
             $userId = $user->getID();
-            if ($userId && !$this->db->one("SELECT 1 FROM " . $this->options['tableUsers'] . " WHERE usr = ?")) {
+            if ($userId && !$this->db->one("SELECT 1 FROM " . $this->options['tableUsers'] . " WHERE usr = ?", $userId)) {
                 $userId = null;
             } else {
                 // if there is a valid email address - try to locate a user with this mail address
@@ -140,21 +140,21 @@ class UserManagementDatabase extends UserManagement
                 $par[] = $provider->getID();
             }
             $this->db->query(
-                "DELETE FROM " . $this->options['tableUserProviders'] . " WHERE usr = ? AND NOT (".implode(' OR ', $sql).")",
+                "DELETE FROM " . $this->options['tableProviders'] . " WHERE usr = ? AND NOT (".implode(' OR ', $sql).")",
                 $par
             );
             foreach ($user->getProviders() as $provider) {
                 if (!$this->db->one(
-                    "SELECT 1 FROM " . $this->options['tableUserProviders'] . " WHERE usr = ? AND provider = ? AND id = ?",
+                    "SELECT 1 FROM " . $this->options['tableProviders'] . " WHERE usr = ? AND provider = ? AND id = ?",
                     [ $userId, $provider->getProvider(), $provider->getID() ]
                 )) {
                     $this->db->query(
-                        "INSERT INTO " . $this->options['tableUserProviders'] . " (provider, id, usr, name, data, created) VALUES (?, ?, ?, ?, ?, ?)",
+                        "INSERT INTO " . $this->options['tableProviders'] . " (provider, id, usr, name, data, created) VALUES (?, ?, ?, ?, ?, ?)",
                         [ $provider->getProvider(), $provider->getID(), $userId, $provider->getName(), $provider->getData(), date('Y-m-d H:i:s') ]
                     );
                 } else {
                     $this->db->query(
-                        "UPDATE " . $this->options['tableUserProviders'] . " SET name = ?, data = ? WHERE provider = ? AND id = ?",
+                        "UPDATE " . $this->options['tableProviders'] . " SET name = ?, data = ? WHERE provider = ? AND id = ?",
                         [ $provider->getName(), $provider->getData(), $provider->getProvider(), $provider->getID() ]
                     );
                 }
@@ -240,7 +240,7 @@ class UserManagementDatabase extends UserManagement
                 [ $id ], null, false, 'assoc_lc'
             );
             $providers = array_map(function ($v) {
-                return new Provider($v['provider'], $v['id'], $v['name'], $v['data']);
+                return new Provider($v['provider'], $v['id'], $v['name'], $v['data'], $v['created'], $v['used']);
             }, $providers);
 
             $user = new User($data['usr'], $data, $groups, $primary, $providers);

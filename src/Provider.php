@@ -8,13 +8,17 @@ class Provider
     protected $id = null;
     protected $data = null;
     protected $name = '';
+    protected $created = null;
+    protected $used = null;
 
-    public function __construct(string $provider, string $id, $name = '', $data = null)
+    public function __construct(string $provider, string $id, $name = '', $data = null, $created = null, $used = null)
     {
         $this->provider = $provider;
         $this->id = $id;
         $this->name = $name;
         $this->data = $data;
+        $this->created = $created ? strtotime($created) : time();
+        $this->user = $used ? strtotime($used) : null;
     }
 
     public function getProvider()
@@ -42,5 +46,13 @@ class Provider
     {
         $this->data = $data;
         return $this;
+    }
+    public function getCreated()
+    {
+        return $this->created;
+    }
+    public function getUsed()
+    {
+        return $this->used;
     }
 }
