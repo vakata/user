@@ -101,6 +101,11 @@ class UserManagementDatabase extends UserManagement
                         [ (string)$data['name'], (string)$data['mail'] ]
                     )->insertId();
                 }
+            } else {
+                $this->db->query(
+                    "UPDATE " . $this->options['tableUsers'] . " SET name = ?, mail = ? WHERE usr = ?)",
+                    [ (string)$data['name'], (string)$data['mail'], $userId ]
+                );
             }
             $groupIDs = array_map(function ($v) {
                 return $v->getID();
