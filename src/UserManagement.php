@@ -14,9 +14,8 @@ class UserManagement implements UserManagementInterface
      * @param  array       $groups       array of GroupInterface objects
      * @param  array       $permissions  array of strings
      * @param  array       $users        array of UserInterface objects
-     * @param  array       $providers    array of rows - each row is an array of strings: provider, provider id, user id
      */
-    public function __construct(array $groups = [], array $permissions = [], array $users = [], array $providers = [])
+    public function __construct(array $groups = [], array $permissions = [], array $users = [])
     {
         $this->permissions = $permissions;
         foreach ($groups as $group) {
@@ -43,51 +42,14 @@ class UserManagement implements UserManagementInterface
      */
     public function getUserByProviderID($provider, $id) : UserInterface
     {
-        foreach ($this->providers as $data) {
-            $row = array_values($data);
-            if ($row[0] === $provider && $row[1] === $id) {
-                return $this->getUser($row[2]);
+        foreach ($this->users as $user) {
+            foreach ($user->getProviders() as $prov) {
+                if ($provider === $prov->getProvider() && $id === $prov->getID()) {
+                    return $user;
+                }
             }
         }
         throw new UserException('User not found', 404);
-    }
-    public function getProviderIDsByUser(UserInterface $user) : array
-    {
-        $id = $user->getID();
-        $providers = [];
-        foreach ($this->providers as $data) {
-            $row = array_values($data);
-            if ($row[2] === $id) {
-                $providers[] = $data;
-            }
-        }
-        return $providers;
-    }
-    public function addProviderID(UserInterface $user, $provider, $id) : UserInterface
-    {
-        $this->providers[] = [ 'provider' => $provider, 'id' => $id, 'user' => $user->getID() ];
-        return $this;
-    }
-    public function deleteProviderID($provider, $id) : UserInterface
-    {
-        foreach ($this->providers as $k => $data) {
-            $row = array_values($data);
-            if ($row[0] === $provider && $row[1] === $id) {
-                unset($this->providers[$k]);
-            }
-        }
-        return $this;
-    }
-    public function deleteUserProviders(UserInterface $user) : UserInterface
-    {
-        $id = $user->getID();
-        foreach ($this->providers as $k => $data) {
-            $row = array_values($data);
-            if ($row[2] === $id) {
-                unset($this->providers[$k]);
-            }
-        }
-        return $this;
     }
     /**
      * Get the list of permissions in the system.

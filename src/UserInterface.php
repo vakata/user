@@ -14,8 +14,12 @@ interface UserInterface extends StorageInterface
     public function getPrimaryGroup();
     public function hasPermission(string $permission) : bool;
     public function getPermissions() : array;
+    public function getProviders() : array;
 
     public function addGroup(GroupInterface $group) : UserInterface;
     public function deleteGroup(GroupInterface $group) : UserInterface;
     public function setPrimaryGroup(GroupInterface $group) : UserInterface;
+
+    public function addProvider(Provider $provider) : UserInterface;
+    public function deleteProvider(Provider $provider) : UserInterface;
 }

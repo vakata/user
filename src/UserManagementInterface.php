@@ -23,8 +23,4 @@ interface UserManagementInterface
     public function groupExists(string $group) : bool;
 
     public function getUserByProviderID($provider, $id) : UserInterface;
-    public function getProviderIDsByUser(UserInterface $user) : array;
-    public function addProviderID(UserInterface $user, $provider, $id) : UserInterface;
-    public function deleteProviderID($provider, $id) : UserInterface;
-    public function deleteUserProviders(UserInterface $user) : UserInterface;
 }

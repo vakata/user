@@ -12,15 +12,17 @@ class User implements UserInterface
     protected $storage;
     protected $groups = [];
     protected $primary = null;
+    protected $providers = [];
 
     /**
      * Create a new user instance.
      * @param  mixed       $id          the user ID
      * @param  array       $data        optional array of user data (defaults to an empty array)
      * @param  array       $groups      optional array of GroupInterface objects the user belongs to (defaults to none)
+     * @param  array       $providers   optional array of Provider objects identifying the user (defaults to none)
      * @param  \vakata\user\GroupInterface $primary     the user's primary group name (defaults to `null`)
      */
-    public function __construct($id, array $data = [], array $groups = [], GroupInterface $primary = null)
+    public function __construct($id, array $data = [], array $groups = [], GroupInterface $primary = null, array $providers = [])
     {
         $this->id = $id;
         $this->data = $data;
@@ -29,6 +31,7 @@ class User implements UserInterface
             $this->groups[$group->getID()] = $group;
         }
         $this->primary = $primary !== null && isset($this->groups[$primary->getID()]) ? $primary : null;
+        $this->providers = $providers;
     }
     /**
      * get the user's ID
@@ -187,6 +190,37 @@ class User implements UserInterface
             throw new UserException('User does not belong to this group');
         }
         $this->primary = $group;
+        return $this;
+    }
+
+    /**
+     * Get the user's providers
+     * @return  array  the user's group list
+     */
+    public function getProviders() : array
+    {
+        return $this->providers;
+    }
+    /**
+     * Add a provider to the
+     * @param  \vakata\user\Provider   $provider the provider to add
+     * @return  self
+     */
+    public function addProvider(Provider $provider) : UserInterface
+    {
+        $this->providers[] = $provider;
+        return $this;
+    }
+    /**
+     * Remove a user form a group
+     * @param  vakata\user\GroupInterface      $group the group to remove the user from
+     * @return  self
+     */
+    public function deleteProvider(Provider $provider) : UserInterface
+    {
+        if (($index = array_search($provider, $this->providers)) !== false) {
+            unset($this->providers[$index]);
+        }
         return $this;
     }
 }

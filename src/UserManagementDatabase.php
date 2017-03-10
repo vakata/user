@@ -86,6 +86,7 @@ class UserManagementDatabase extends UserManagement
                     );
                 }
             }
+            
             // if there was not user with that email address, or the email was invalid - register a new user
             if (!$userId) {
                 if ($this->db->driver() === 'oracle') {
@@ -101,6 +102,14 @@ class UserManagementDatabase extends UserManagement
                     )->insertId();
                 }
             }
+            $groupIDs = array_map(function ($v) {
+                return $v->getID();
+            }, $user->getGroups());
+            $groupIDs[] = '';
+            $this->db->query(
+                "DELETE FROM " . $this->options['tableUserGroups'] . " WHERE usr = ? AND grp NOT IN (??)",
+                [ $userId, $groupIDs ]
+            );
             foreach ($user->getGroups() as $group) {
                 if (!$this->db->one(
                     "SELECT 1 FROM " . $this->options['tableUserGroups'] . " WHERE usr = ? AND grp = ?",
@@ -112,6 +121,45 @@ class UserManagementDatabase extends UserManagement
                     );
                 }
             }
+            $this->db->query(
+                "UPDATE " . $this->options['tableUserGroups'] . " SET main = 0 WHERE usr = ?",
+                [ $userId ]
+            );
+            if ($user->getPrimaryGroup()) {
+                $this->db->query(
+                    "UPDATE " . $this->options['tableUserGroups'] . " SET main = 1 WHERE usr = ? AND grp = ?",
+                    [ $userId, $user->getPrimaryGroup()->getID() ]
+                );
+            }
+
+            $sql = ['(provider = ? AND id = ?)'];
+            $par = [$userId, '', ''];
+            foreach ($user->getProviders() as $provider) {
+                $sql[] = '(provider = ? AND id = ?)';
+                $par[] = $provider->getProvider();
+                $par[] = $provider->getID();
+            }
+            $this->db->query(
+                "DELETE FROM " . $this->options['tableUserProviders'] . " WHERE usr = ? AND NOT (".implode(' OR ', $sql).")",
+                $par
+            );
+            foreach ($user->getProviders() as $provider) {
+                if (!$this->db->one(
+                    "SELECT 1 FROM " . $this->options['tableUserProviders'] . " WHERE usr = ? AND provider = ? AND id = ?",
+                    [ $userId, $provider->getProvider(), $provider->getID() ]
+                )) {
+                    $this->db->query(
+                        "INSERT INTO " . $this->options['tableUserProviders'] . " (provider, id, usr, name, data, created) VALUES (?, ?, ?, ?, ?, ?)",
+                        [ $provider->getProvider(), $provider->getID(), $userId, $provider->getName(), $provider->getData(), date('Y-m-d H:i:s') ]
+                    );
+                } else {
+                    $this->db->query(
+                        "UPDATE " . $this->options['tableUserProviders'] . " SET name = ?, data = ? WHERE provider = ? AND id = ?",
+                        [ $provider->getName(), $provider->getData(), $provider->getProvider(), $provider->getID() ]
+                    );
+                }
+            }
+            
             $this->db->commit();
             $user->setID($userId);
             parent::saveUser($user);
@@ -186,7 +234,16 @@ class UserManagementDatabase extends UserManagement
             if ($primary) {
                 $primary = $this->getGroup($primary);
             }
-            $user = new User($data['usr'], $data, $groups, $primary);
+
+            $providers = $this->db->all(
+                "SELECT * FROM " . $this->options['tableProviders'] . " WHERE usr = ?",
+                [ $id ], null, false, 'assoc_lc'
+            );
+            $providers = array_map(function ($v) {
+                return new Provider($v['provider'], $v['id'], $v['name'], $v['data']);
+            }, $providers);
+
+            $user = new User($data['usr'], $data, $groups, $primary, $providers);
             parent::saveUser($user);
             return $user;
         }
@@ -213,37 +270,6 @@ class UserManagementDatabase extends UserManagement
             [ date('Y-m-d H:i:s'), $provider, $id ]
         );
         return $user;
-    }
-    public function getProviderIDsByUser(UserInterface $user) : array
-    {
-        return $this->db->all(
-            "SELECT * FROM " . $this->options['tableProviders'] . " WHERE usr = ?",
-            $user->getID()
-        );
-    }
-    public function addProviderID(UserInterface $user, $provider, $id) : UserInterface
-    {
-        $this->db->query(
-            "INSERT INTO " . $this->options['tableProviders'] . " (provider, id, usr, created) VALUES (?, ?, ?, ?)",
-            [ $provider, $id, $user->getID(), date('Y-m-d H:i:s') ]
-        );
-        return $this;
-    }
-    public function deleteProviderID($provider, $id) : UserInterface
-    {
-        $this->db->query(
-            "DELETE FROM " . $this->options['tableProviders'] . " WHERE provider = ? AND id = ?",
-            [ $provider, $id ]
-        );
-        return $this;
-    }
-    public function deleteUserProviders(UserInterface $user) : UserInterface
-    {
-        $this->db->query(
-            "DELETE FROM " . $this->options['tableProviders'] . " WHERE usr = ?",
-            [ $user->getID() ]
-        );
-        return $this;
     }
 
     /**
