@@ -304,9 +304,11 @@ class UserManagementDatabase extends UserManagement
                     [ $group->getID(), date('Y-m-d H:i:s') ]
                 );
             }
+            $permissions = $group->getPermissions();
+            $permissions[] = '';
             $this->db->query(
                 "DELETE FROM " . $this->options['tableGroupsPermissions'] . " WHERE grp = ? AND perm NOT IN (??)",
-                [ $group->getID(), $group->getPermissions() ]
+                [ $group->getID(), $permissions ]
             );
             foreach ($group->getPermissions() as $permission) {
                 if (!$this->db->one(
