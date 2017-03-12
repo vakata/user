@@ -92,7 +92,7 @@ class UserManagementDatabase extends UserManagement
             if (!$userId) {
                 $userId = $this->db->table($this->options['tableUsers'])->insert($data)['usr'];
             } else {
-                $this->db->table($this->options['tableUsers'])->update($data);
+                $this->db->table($this->options['tableUsers'])->filter('usr', $userId)->update($data);
             }
             $groupIDs = array_map(function ($v) {
                 return $v->getID();
