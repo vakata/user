@@ -7,7 +7,6 @@ class UserManagement implements UserManagementInterface
     protected $permissions = [];
     protected $users = [];
     protected $groups = [];
-    protected $providers = [];
 
     /**
      * create an instance
@@ -32,7 +31,6 @@ class UserManagement implements UserManagementInterface
             }
         }
         $this->permissions = array_unique(array_values($this->permissions));
-        $this->providers = $providers;
     }
     /**
      * Get a user instance by provider ID
@@ -117,7 +115,6 @@ class UserManagement implements UserManagementInterface
     {
         $index = array_search($user, $this->users);
         if ($index !== false) {
-            $this->deleteUserProviders($user);
             unset($this->user[$index]);
         }
         return $this;
