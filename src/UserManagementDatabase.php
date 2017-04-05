@@ -1,7 +1,7 @@
 <?php
 namespace vakata\user;
 
-use vakata\database\DatabaseInterface;
+use vakata\database\DBInterface;
 
 class UserManagementDatabase extends UserManagement
 {
@@ -19,10 +19,10 @@ class UserManagementDatabase extends UserManagement
      * * tableGroupsPermissions - the table containing each group's permissions (defaults to "users_groups_permissions")
      * * tableUserGroups - the table containing each user's groups (defaults to "users_user_groups")
      * * tableUserPermissions - the table containing each user's permissions (defaults to "users_user_permissions")
-     * @param  \vakata\database\DatabaseInterface $db the DB instance
+     * @param  DBInterface $db the DB instance
      * @param  array  $options the options for future instances
      */
-    public function __construct(DatabaseInterface $db, array $options = [])
+    public function __construct(DBInterface $db, array $options = [])
     {
         $options = array_merge([
             'tableUsers'             => 'users',
