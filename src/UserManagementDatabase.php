@@ -307,6 +307,11 @@ class UserManagementDatabase extends UserManagement
                     'created' => date('Y-m-d H:i:s')
                 ])['grp'];
                 $group->setID($groupID);
+            } else {
+                $this->db->query(
+                    "UPDATE " . $this->options['tableGroups'] . " SET name = ? WHERE grp = ?",
+                    [ $group->getName(), $group->getID() ]
+                );
             }
             $permissions = $group->getPermissions();
             $permissions[] = '';
