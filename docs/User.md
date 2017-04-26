@@ -20,6 +20,9 @@
 |[addGroup](#vakata\user\useraddgroup)|Add the user to a group|
 |[deleteGroup](#vakata\user\userdeletegroup)|Remove a user form a group|
 |[setPrimaryGroup](#vakata\user\usersetprimarygroup)|Set the user's primary group|
+|[getProviders](#vakata\user\usergetproviders)|Get the user's providers|
+|[addProvider](#vakata\user\useraddprovider)|Add a provider to the|
+|[deleteProvider](#vakata\user\userdeleteprovider)|Remove a user form a group|
 
 ---
 
@@ -34,6 +37,7 @@ public function __construct (
     mixed $id,  
     array $data,  
     array $groups,  
+    array $providers,  
     \vakata\user\GroupInterface $primary  
 )   
 ```
@@ -43,6 +47,7 @@ public function __construct (
 | `$id` | `mixed` | the user ID |
 | `$data` | `array` | optional array of user data (defaults to an empty array) |
 | `$groups` | `array` | optional array of GroupInterface objects the user belongs to (defaults to none) |
+| `$providers` | `array` | optional array of Provider objects identifying the user (defaults to none) |
 | `$primary` | `\vakata\user\GroupInterface` | the user's primary group name (defaults to `null`) |
 
 ---
@@ -299,6 +304,60 @@ public function setPrimaryGroup (
 |  | Type | Description |
 |-----|-----|-----|
 | `$group` | `\vakata\user\GroupInterface` | the group to set as primary |
+|  |  |  |
+| `return` | `self` |  |
+
+---
+
+
+### vakata\user\User::getProviders
+Get the user's providers  
+
+
+```php
+public function getProviders () : array    
+```
+
+|  | Type | Description |
+|-----|-----|-----|
+|  |  |  |
+| `return` | `array` | the user's group list |
+
+---
+
+
+### vakata\user\User::addProvider
+Add a provider to the  
+
+
+```php
+public function addProvider (  
+    \vakata\user\Provider $provider  
+) : self    
+```
+
+|  | Type | Description |
+|-----|-----|-----|
+| `$provider` | `\vakata\user\Provider` | the provider to add |
+|  |  |  |
+| `return` | `self` |  |
+
+---
+
+
+### vakata\user\User::deleteProvider
+Remove a user form a group  
+
+
+```php
+public function deleteProvider (  
+    \vakata\user\GroupInterface $group  
+) : self    
+```
+
+|  | Type | Description |
+|-----|-----|-----|
+| `$group` | `\vakata\user\GroupInterface` | the group to remove the user from |
 |  |  |  |
 | `return` | `self` |  |
 

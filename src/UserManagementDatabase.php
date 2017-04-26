@@ -39,6 +39,7 @@ class UserManagementDatabase extends UserManagement
         $temp = $this->db->all("
             SELECT
                 g.grp,
+                g.name,
                 p.perm
             FROM " . $options['tableGroups'] . " g
             LEFT JOIN " . $options['tableGroupsPermissions'] . " p ON p.grp = g.grp
@@ -47,14 +48,14 @@ class UserManagementDatabase extends UserManagement
         $groups = [];
         foreach ($temp as $row) {
             if (!isset($groups[$row['grp']])) {
-                $groups[$row['grp']] = [];
+                $groups[$row['grp']] = [ 'name' => $row['name'], 'permissions' => [] ];
             }
             if ($row['perm']) {
-                $groups[$row['grp']][] = $row['perm'];
+                $groups[$row['grp']]['permissions'][] = $row['perm'];
             }
         }
-        foreach ($groups as $id => $permissions) {
-            $groups[$id] = new Group($id, $permissions);
+        foreach ($groups as $id => $group) {
+            $groups[$id] = new Group($id, $group['name'], $group['permissions']);
         }
 
         $permissions = $this->db->all("SELECT perm FROM " . $options['tablePermissions'] . " ORDER BY perm");
@@ -275,11 +276,13 @@ class UserManagementDatabase extends UserManagement
             return parent::getGroup($id);
         }
         catch (UserException $e) {
-            if (!$this->db->one("SELECT grp FROM " . $this->options['tableUserGroups'] . " WHERE grp = ?", $id)) {
+            $data = $this->db->one("SELECT grp, name FROM " . $this->options['tableUserGroups'] . " WHERE grp = ?", $id);
+            if (!$data) {
                 throw new UserException("Group does not exist");
             }
             $group = new Group(
                 $id,
+                $data['name'],
                 $this->db->all("SELECT perm FROM " . $this->options['tableGroupsPermissions'] . " WHERE grp = ?", $id)
             );
             parent::saveGroup($group);
@@ -295,14 +298,15 @@ class UserManagementDatabase extends UserManagement
     {
         $trans = $this->db->begin();
         try {
-            if (!$this->db->one(
+            if (!$group->getID() || !$this->db->one(
                 "SELECT 1 FROM " . $this->options['tableGroups'] . " WHERE grp = ?",
                 [ $group->getID() ]
             )) {
-                $this->db->query(
-                    "INSERT INTO " . $this->options['tableGroups'] . " (grp, created) VALUES (?, ?)",
-                    [ $group->getID(), date('Y-m-d H:i:s') ]
-                );
+                $groupID = $this->db->table($this->options['tableGroups'])->insert([
+                    'name' => $group->getName(),
+                    'created' => date('Y-m-d H:i:s')
+                ])['grp'];
+                $group->setID($groupID);
             }
             $permissions = $group->getPermissions();
             $permissions[] = '';
@@ -333,8 +337,7 @@ class UserManagementDatabase extends UserManagement
             $this->db->commit();
             parent::saveGroup($group);
             return $this;
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             $this->db->rollback($trans);
             throw $e;
         }

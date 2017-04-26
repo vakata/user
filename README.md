@@ -19,32 +19,33 @@ $ composer require vakata/user
 ## Usage
 
 ``` php
-use \vakata\user\UserDatabase;
+use \vakata\database\DB;
+use \vakata\user\UserManagementDatabase;
+use \vakata\user\Group;
+use \vakata\user\User;
 
-UserDatabase::init([
-    'key' => 'temp_sign_key',
-    'groups' => [ 'editors' => ['create-news'] ],
-    'permissions' => [ 'create-news' ]
-], $db);
+$db = new DB('mysql://root@127.0.0.1/dbname');
 
-// on login:
-$auth = new \vakata\authentication\PasswordDatabase($db);
-$token = $auth->authenticate([
-    'username' => $req->getPost('username'),
-    'password' => $req->getPost('password')
+$usrm = new UserManagementDatabase($db, [
+    'tableUsers'             => 'users',
+    'tableProviders'         => 'user_providers',
+    'tableGroups'            => 'groups',
+    'tablePermissions'       => 'permissions',
+    'tableGroupsPermissions' => 'group_permissions',
+    'tableUserGroups'        => 'user_groups'
 ]);
-$token = UserDatabase::signToken($token);
-// store the token in a cookie or session
 
-// on a subsequent request:
-$user = UserDatabase::fromToken($token);
-// now interact with the user
-$user->hasPermission("create-news");
-$user->addGroup("editors");
-$user->hasPermission("create-news");
+// get a user by ID
+$user = $usrm->getUser(1);
+// or by a provider
+$user = $usrm->getUserByProviderID($provider, $providerID);
 
-// a user can also be created manually (for example for testing)
-$user = new UserDatabase(1); // simulate user with ID 1
+// add a group
+$group = new Group(1, "Name", ["some", "permissions"]);
+$usrm->saveGroup($group);
+// add the new group to a user
+$user->addGroup($group);
+$usrm->saveUser($user);
 ```
 
 Read more in the [API docs](docs/README.md)

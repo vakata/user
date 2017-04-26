@@ -6,17 +6,19 @@
 | Name | Description |
 |------|-------------|
 |[__construct](#vakata\user\usermanagement__construct)|create an instance|
-|[secureToken](#vakata\user\usermanagementsecuretoken)|Signs and encrypts a given JWT using the set of rules provided when creating the instance.|
-|[parseToken](#vakata\user\usermanagementparsetoken)|Parse, verify and validate a token.|
-|[fromToken](#vakata\user\usermanagementfromtoken)|Creates a user instance from a token.|
+|[getUserByProviderID](#vakata\user\usermanagementgetuserbyproviderid)|Get a user instance by provider ID|
 |[permissions](#vakata\user\usermanagementpermissions)|Get the list of permissions in the system.|
 |[permissionExists](#vakata\user\usermanagementpermissionexists)|Does a permission exist.|
 |[groups](#vakata\user\usermanagementgroups)|Get a list of groups available in the system.|
 |[groupExists](#vakata\user\usermanagementgroupexists)|Does a group exist.|
 |[getUser](#vakata\user\usermanagementgetuser)|Get a user instance by ID|
 |[saveUser](#vakata\user\usermanagementsaveuser)|save a user instance|
+|[deleteUser](#vakata\user\usermanagementdeleteuser)|Delete a user.|
 |[getGroup](#vakata\user\usermanagementgetgroup)|Get a group by its ID|
 |[saveGroup](#vakata\user\usermanagementsavegroup)|Save a group.|
+|[deleteGroup](#vakata\user\usermanagementdeletegroup)|Delete a group.|
+|[addPermission](#vakata\user\usermanagementaddpermission)|Add a permission.|
+|[deletePermission](#vakata\user\usermanagementdeletepermission)|Remove a permission.|
 
 ---
 
@@ -24,19 +26,13 @@
 
 ### vakata\user\UserManagement::__construct
 create an instance  
-* Options include:  
-* issuer - the issuer to use when signing JWTs  
-* cryptokey - the key to used to encrypt / decrypt JWTs  
-* key - the key to use when signing JWT's (could be an array of keys)  
-* validateIpAddress - the required IP address of the user (defaults to `null`)  
-* validateUserAgent - the required user agent of the user (defaults to `null`)  
-* validateSessionID - the required session ID of the user (defaults to `null`)
+
 
 ```php
 public function __construct (  
     array $groups,  
     array $permissions,  
-    array $options  
+    array $users  
 )   
 ```
 
@@ -44,68 +40,28 @@ public function __construct (
 |-----|-----|-----|
 | `$groups` | `array` | array of GroupInterface objects |
 | `$permissions` | `array` | array of strings |
-| `$options` | `array` | the instance's options described above |
+| `$users` | `array` | array of UserInterface objects |
 
 ---
 
 
-### vakata\user\UserManagement::secureToken
-Signs and encrypts a given JWT using the set of rules provided when creating the instance.  
+### vakata\user\UserManagement::getUserByProviderID
+Get a user instance by provider ID  
 
 
 ```php
-public function secureToken (  
-    \JWT $token,  
-    int|string $validity  
-) : string    
+public function getUserByProviderID (  
+    string $provider,  
+    mixed $id  
+) : \vakata\user\UserInterface    
 ```
 
 |  | Type | Description |
 |-----|-----|-----|
-| `$token` | `\JWT` | the token to sign |
-| `$validity` | `int`, `string` | the validity of the token in seconds or a strtotime expression (defaults to `86400`) |
+| `$provider` | `string` | the authentication provider |
+| `$id` | `mixed` | the user ID |
 |  |  |  |
-| `return` | `string` | the signed (and optionally encrypted) token |
-
----
-
-
-### vakata\user\UserManagement::parseToken
-Parse, verify and validate a token.  
-
-
-```php
-public function parseToken (  
-    \JWT|string $token  
-) : array    
-```
-
-|  | Type | Description |
-|-----|-----|-----|
-| `$token` | `\JWT`, `string` | the token |
-|  |  |  |
-| `return` | `array` | of token claims |
-
----
-
-
-### vakata\user\UserManagement::fromToken
-Creates a user instance from a token.  
-
-
-```php
-public function fromToken (  
-    \JWT|string $token,  
-    boolean $register  
-) : \vakata\user\User    
-```
-
-|  | Type | Description |
-|-----|-----|-----|
-| `$token` | `\JWT`, `string` | the token |
-| `$register` | `boolean` | create a new user if the token is valid, defaults to `false` |
-|  |  |  |
-| `return` | `\vakata\user\User` | the new user instance |
+| `return` | `\vakata\user\UserInterface` | a user instance |
 
 ---
 
@@ -218,6 +174,25 @@ public function saveUser (
 ---
 
 
+### vakata\user\UserManagement::deleteUser
+Delete a user.  
+
+
+```php
+public function deleteUser (  
+    \vakata\user\UserInterface $user  
+) : self    
+```
+
+|  | Type | Description |
+|-----|-----|-----|
+| `$user` | `\vakata\user\UserInterface` | the user to delete |
+|  |  |  |
+| `return` | `self` |  |
+
+---
+
+
 ### vakata\user\UserManagement::getGroup
 Get a group by its ID  
 
@@ -250,6 +225,63 @@ public function saveGroup (
 |  | Type | Description |
 |-----|-----|-----|
 | `$group` | `\vakata\user\GroupInterface` | the group to save |
+|  |  |  |
+| `return` | `self` |  |
+
+---
+
+
+### vakata\user\UserManagement::deleteGroup
+Delete a group.  
+
+
+```php
+public function deleteGroup (  
+    \vakata\user\GroupInterface $group  
+) : self    
+```
+
+|  | Type | Description |
+|-----|-----|-----|
+| `$group` | `\vakata\user\GroupInterface` | the group to delete |
+|  |  |  |
+| `return` | `self` |  |
+
+---
+
+
+### vakata\user\UserManagement::addPermission
+Add a permission.  
+
+
+```php
+public function addPermission (  
+    string $permission  
+) : self    
+```
+
+|  | Type | Description |
+|-----|-----|-----|
+| `$permission` | `string` | the permission to add |
+|  |  |  |
+| `return` | `self` |  |
+
+---
+
+
+### vakata\user\UserManagement::deletePermission
+Remove a permission.  
+
+
+```php
+public function deletePermission (  
+    string $permission  
+) : self    
+```
+
+|  | Type | Description |
+|-----|-----|-----|
+| `$permission` | `string` | the permission to remove |
 |  |  |  |
 | `return` | `self` |  |
 

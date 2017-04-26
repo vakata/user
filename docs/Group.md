@@ -7,7 +7,9 @@
 |------|-------------|
 |[__construct](#vakata\user\group__construct)|Create a new group instance.|
 |[getID](#vakata\user\groupgetid)|get the group's ID|
+|[getName](#vakata\user\groupgetname)|get the group's ID|
 |[setID](#vakata\user\groupsetid)|set the group's ID|
+|[setName](#vakata\user\groupsetname)|set the group's friendly name|
 |[getPermissions](#vakata\user\groupgetpermissions)|Get the group's permissions|
 |[hasPermission](#vakata\user\grouphaspermission)|Does the group have a permission.|
 |[addPermission](#vakata\user\groupaddpermission)|Give the group a new permission|
@@ -24,6 +26,7 @@ Create a new group instance.
 ```php
 public function __construct (  
     mixed $id,  
+    string $name,  
     array $permissions  
 )   
 ```
@@ -31,6 +34,7 @@ public function __construct (
 |  | Type | Description |
 |-----|-----|-----|
 | `$id` | `mixed` | the group ID |
+| `$name` | `string` | the group frienly name |
 | `$permissions` | `array` | optional array of permissions the group has (defaults to an empty array) |
 
 ---
@@ -52,12 +56,44 @@ public function getID () : mixed
 ---
 
 
+### vakata\user\Group::getName
+get the group's ID  
+
+
+```php
+public function getName () : mixed    
+```
+
+|  | Type | Description |
+|-----|-----|-----|
+|  |  |  |
+| `return` | `mixed` | the group ID |
+
+---
+
+
 ### vakata\user\Group::setID
 set the group's ID  
 
 
 ```php
 public function setID () : self    
+```
+
+|  | Type | Description |
+|-----|-----|-----|
+|  |  |  |
+| `return` | `self` |  |
+
+---
+
+
+### vakata\user\Group::setName
+set the group's friendly name  
+
+
+```php
+public function setName () : self    
 ```
 
 |  | Type | Description |

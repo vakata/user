@@ -4,16 +4,19 @@ namespace vakata\user;
 class Group implements GroupInterface
 {
     protected $id;
+    protected $name;
     protected $permissions;
 
     /**
      * Create a new group instance.
      * @param  mixed       $id          the group ID
+     * @param  string      $name        the group frienly name
      * @param  array       $permissions optional array of permissions the group has (defaults to an empty array)
      */
-    public function __construct($id, array $permissions = [])
+    public function __construct($id, string $name, array $permissions = [])
     {
         $this->id = $id;
+        $this->name = $name;
         $this->permissions = array_values(array_unique($permissions));
     }
     /**
@@ -25,12 +28,29 @@ class Group implements GroupInterface
         return $this->id;
     }
     /**
+     * get the group's ID
+     * @return mixed the group ID
+     */
+    public function getName()
+    {
+        return $this->name;
+    }
+    /**
      * set the group's ID
      * @return self
      */
     public function setID($id)
     {
         $this->id = $id;
+        return $this;
+    }
+    /**
+     * set the group's friendly name
+     * @return self
+     */
+    public function setName(string $name)
+    {
+        $this->name = $name;
         return $this;
     }
     /**

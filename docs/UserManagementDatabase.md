@@ -6,13 +6,15 @@
 | Name | Description |
 |------|-------------|
 |[__construct](#vakata\user\usermanagementdatabase__construct)|Static init method.|
-|[fromToken](#vakata\user\usermanagementdatabasefromtoken)|Creates a user instance from a token.|
 |[saveUser](#vakata\user\usermanagementdatabasesaveuser)|save a user instance|
+|[deleteUser](#vakata\user\usermanagementdatabasedeleteuser)|Delete a user.|
 |[getUser](#vakata\user\usermanagementdatabasegetuser)|Get a user instance by ID|
+|[getUserByProviderID](#vakata\user\usermanagementdatabasegetuserbyproviderid)|Get a user instance by provider ID|
 |[getGroup](#vakata\user\usermanagementdatabasegetgroup)|Get a group by its ID|
 |[saveGroup](#vakata\user\usermanagementdatabasesavegroup)|Save a group.|
-|[secureToken](#vakata\user\usermanagementdatabasesecuretoken)|Signs and encrypts a given JWT using the set of rules provided when creating the instance.|
-|[parseToken](#vakata\user\usermanagementdatabaseparsetoken)|Parse, verify and validate a token.|
+|[deleteGroup](#vakata\user\usermanagementdatabasedeletegroup)|Delete a group.|
+|[addPermission](#vakata\user\usermanagementdatabaseaddpermission)|Add a permission.|
+|[deletePermission](#vakata\user\usermanagementdatabasedeletepermission)|Remove a permission.|
 |[permissions](#vakata\user\usermanagementdatabasepermissions)|Get the list of permissions in the system.|
 |[permissionExists](#vakata\user\usermanagementdatabasepermissionexists)|Does a permission exist.|
 |[groups](#vakata\user\usermanagementdatabasegroups)|Get a list of groups available in the system.|
@@ -24,7 +26,7 @@
 
 ### vakata\user\UserManagementDatabase::__construct
 Static init method.  
-In addition to the `UserManagement` options, the keys also include:  
+Options include:  
 * tableUsers - the table to store the users in (defaults to "users")  
 * tableProviders - the table linking users to providers (defaults to "users_providers")  
 * tableGroups - the table containing the available groups (defaults to "users_groups")  
@@ -35,36 +37,15 @@ In addition to the `UserManagement` options, the keys also include:
 
 ```php
 public function __construct (  
-    \vakata\database\DatabaseInterface $db,  
+    \DBInterface $db,  
     array $options  
 )   
 ```
 
 |  | Type | Description |
 |-----|-----|-----|
-| `$db` | `\vakata\database\DatabaseInterface` | the DB instance |
+| `$db` | `\DBInterface` | the DB instance |
 | `$options` | `array` | the options for future instances |
-
----
-
-
-### vakata\user\UserManagementDatabase::fromToken
-Creates a user instance from a token.  
-
-
-```php
-public function fromToken (  
-    \JWT|string $token,  
-    boolean $register  
-) : \vakata\user\User    
-```
-
-|  | Type | Description |
-|-----|-----|-----|
-| `$token` | `\JWT`, `string` | the token |
-| `$register` | `boolean` | create a new user if the token is valid, defaults to `false` |
-|  |  |  |
-| `return` | `\vakata\user\User` | the new user instance |
 
 ---
 
@@ -88,6 +69,25 @@ public function saveUser (
 ---
 
 
+### vakata\user\UserManagementDatabase::deleteUser
+Delete a user.  
+
+
+```php
+public function deleteUser (  
+    \vakata\user\UserInterface $user  
+) : self    
+```
+
+|  | Type | Description |
+|-----|-----|-----|
+| `$user` | `\vakata\user\UserInterface` | the user to delete |
+|  |  |  |
+| `return` | `self` |  |
+
+---
+
+
 ### vakata\user\UserManagementDatabase::getUser
 Get a user instance by ID  
 
@@ -100,6 +100,27 @@ public function getUser (
 
 |  | Type | Description |
 |-----|-----|-----|
+| `$id` | `mixed` | the user ID |
+|  |  |  |
+| `return` | `\vakata\user\UserInterface` | a user instance |
+
+---
+
+
+### vakata\user\UserManagementDatabase::getUserByProviderID
+Get a user instance by provider ID  
+
+
+```php
+public function getUserByProviderID (  
+    string $provider,  
+    mixed $id  
+) : \vakata\user\UserInterface    
+```
+
+|  | Type | Description |
+|-----|-----|-----|
+| `$provider` | `string` | the authentication provider |
 | `$id` | `mixed` | the user ID |
 |  |  |  |
 | `return` | `\vakata\user\UserInterface` | a user instance |
@@ -145,42 +166,59 @@ public function saveGroup (
 ---
 
 
-### vakata\user\UserManagementDatabase::secureToken
-Signs and encrypts a given JWT using the set of rules provided when creating the instance.  
+### vakata\user\UserManagementDatabase::deleteGroup
+Delete a group.  
 
 
 ```php
-public function secureToken (  
-    \JWT $token,  
-    int|string $validity  
-) : string    
+public function deleteGroup (  
+    \vakata\user\GroupInterface $group  
+) : self    
 ```
 
 |  | Type | Description |
 |-----|-----|-----|
-| `$token` | `\JWT` | the token to sign |
-| `$validity` | `int`, `string` | the validity of the token in seconds or a strtotime expression (defaults to `86400`) |
+| `$group` | `\vakata\user\GroupInterface` | the group to delete |
 |  |  |  |
-| `return` | `string` | the signed (and optionally encrypted) token |
+| `return` | `self` |  |
 
 ---
 
 
-### vakata\user\UserManagementDatabase::parseToken
-Parse, verify and validate a token.  
+### vakata\user\UserManagementDatabase::addPermission
+Add a permission.  
 
 
 ```php
-public function parseToken (  
-    \JWT|string $token  
-) : array    
+public function addPermission (  
+    string $permission  
+) : self    
 ```
 
 |  | Type | Description |
 |-----|-----|-----|
-| `$token` | `\JWT`, `string` | the token |
+| `$permission` | `string` | the permission to add |
 |  |  |  |
-| `return` | `array` | of token claims |
+| `return` | `self` |  |
+
+---
+
+
+### vakata\user\UserManagementDatabase::deletePermission
+Remove a permission.  
+
+
+```php
+public function deletePermission (  
+    string $permission  
+) : self    
+```
+
+|  | Type | Description |
+|-----|-----|-----|
+| `$permission` | `string` | the permission to remove |
+|  |  |  |
+| `return` | `self` |  |
 
 ---
 
