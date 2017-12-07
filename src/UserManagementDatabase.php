@@ -87,7 +87,7 @@ class UserManagementDatabase extends UserManagement
                     );
                 }
             }
-            
+
             unset($data['usr']);
             // if there was not user with that email address, or the email was invalid - register a new user
             if (!$userId) {
@@ -152,7 +152,7 @@ class UserManagementDatabase extends UserManagement
                     );
                 }
             }
-            
+
             $this->db->commit();
             $user->setID($userId);
             parent::saveUser($user);
@@ -276,7 +276,7 @@ class UserManagementDatabase extends UserManagement
             return parent::getGroup($id);
         }
         catch (UserException $e) {
-            $data = $this->db->one("SELECT grp, name FROM " . $this->options['tableUserGroups'] . " WHERE grp = ?", $id);
+            $data = $this->db->one("SELECT grp, name FROM " . $this->options['tableGroups'] . " WHERE grp = ?", $id);
             if (!$data) {
                 throw new UserException("Group does not exist");
             }
