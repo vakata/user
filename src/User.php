@@ -172,7 +172,7 @@ class User implements UserInterface
     {
         if (isset($this->groups[$group->getID()])) {
             unset($this->groups[$group->getID()]);
-            if ($this->primary->getID() === $group->getID()) {
+            if ($this->primary !== null && $this->primary->getID() === $group->getID()) {
                 $this->primary = null;
             }
         }
