@@ -19,18 +19,19 @@ class UserManagement implements UserManagementInterface
         $this->permissions = $permissions;
         foreach ($groups as $group) {
             $this->groups[$group->getID()] = $group;
-            $this->permissions = $this->permissions + $group->getPermissions();
+            $this->permissions = array_merge($this->permissions, $group->getPermissions());
         }
         foreach ($users as $user) {
             $this->users[$user->getID()] = $user;
             foreach ($user->getGroups() as $group) {
                 if (!isset($this->groups[$group->getID()])) {
                     $this->groups[$group->getID()] = $group;
-                    $this->permissions = $this->permissions + $group->getPermissions();
+                    $this->permissions = array_merge($this->permissions, $group->getPermissions());
                 }
             }
         }
         $this->permissions = array_unique(array_values($this->permissions));
+        User::$permissions = $this->permissions;
     }
     /**
      * Get a user instance by provider ID
@@ -142,6 +143,7 @@ class UserManagement implements UserManagementInterface
             $this->groups[$group->getID()] = $group;
         }
         $this->permissions = array_values(array_unique(array_merge($this->permissions, $group->getPermissions())));
+        User::$permissions = $this->permissions;
         return $this;
     }
     /**
@@ -166,6 +168,7 @@ class UserManagement implements UserManagementInterface
     {
         $this->permissions[] = $permission;
         $this->permissions = array_values(array_unique($this->permissions));
+        User::$permissions = $this->permissions;
         return $this;
     }
     /**
@@ -185,6 +188,25 @@ class UserManagement implements UserManagementInterface
                 }
             }
         }
+        User::$permissions = $this->permissions;
         return $this;
+    }
+
+    public function searchUsers(array $query) : array
+    {
+        $matches = [];
+        foreach ($this->users as $user) {
+            $match = true;
+            foreach ($query as $k => $v) {
+                if ($user->{$k} !== $v) {
+                    $match = false;
+                    break;
+                }
+            }
+            if ($match) {
+                $matches[] = $user;
+            }
+        }
+        return $matches;
     }
 }

@@ -7,6 +7,8 @@ use vakata\kvstore\StorageInterface;
 
 class User implements UserInterface
 {
+    public static $permissions;
+
     protected $id;
     protected $data;
     protected $storage;
@@ -130,10 +132,14 @@ class User implements UserInterface
     /**
      * Does the user have a permission.
      * @param  string        $permission the permission to check for
+     * @param  boolean       $strict if set to true will return false for permissions that do not exist
      * @return boolean                   does the user have that permission
      */
-    public function hasPermission(string $permission) : bool
+    public function hasPermission(string $permission, bool $strict = false) : bool
     {
+        if (!in_array($permission, static::$permissions)) {
+            return $strict ? false : true;
+        }
         foreach ($this->groups as $group) {
             if ($group->hasPermission($permission)) {
                 return true;

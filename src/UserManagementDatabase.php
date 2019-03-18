@@ -2,6 +2,7 @@
 namespace vakata\user;
 
 use vakata\database\DBInterface;
+use vakata\database\DBException;
 
 class UserManagementDatabase extends UserManagement
 {
@@ -182,7 +183,7 @@ class UserManagementDatabase extends UserManagement
             );
             $this->db->query(
                 "DELETE FROM " . $this->options['tableUsers'] . " WHERE usr = ?",
-                [ $group->getID() ]
+                [ $user->getID() ]
             );
             $this->db->commit();
             parent::deleteUser($user);
@@ -427,5 +428,23 @@ class UserManagementDatabase extends UserManagement
             $this->db->rollback($trans);
             throw $e;
         }
+    }
+
+    public function searchUsers(array $query) : array
+    {
+        $q = $this->db->table($this->options['tableUsers']);
+        foreach ($query as $k => $v) {
+            $q->filter($k, $v);
+        }
+        try {
+            $ids = $q->select(['usr']);
+            $matches = [];
+            foreach ($ids as $id) {
+                $matches[] = $this->getUser($id['usr']);
+            }
+        } catch (DBException $e) {
+            throw new UserException("Invalid filter");
+        }
+        return $matches;
     }
 }
