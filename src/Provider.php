@@ -18,7 +18,7 @@ class Provider
         $this->name = $name;
         $this->data = $data;
         $this->created = $created ? strtotime($created) : time();
-        $this->user = $used ? strtotime($used) : null;
+        $this->used = $used ? strtotime($used) : null;
     }
 
     public function getProvider()
@@ -54,5 +54,15 @@ class Provider
     public function getUsed()
     {
         return $this->used;
+    }
+    public function setCreated($created)
+    {
+        $this->created = strtotime($created);
+        return $this;
+    }
+    public function setUsed($used)
+    {
+        $this->used = $used ? strtotime($used) : null;
+        return $this;
     }
 }

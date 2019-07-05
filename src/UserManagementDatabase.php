@@ -143,17 +143,16 @@ class UserManagementDatabase extends UserManagement
                     [ $userId, $provider->getProvider(), $provider->getID() ]
                 )) {
                     $this->db->query(
-                        "INSERT INTO " . $this->options['tableProviders'] . " (provider, id, usr, name, data, created) VALUES (?, ?, ?, ?, ?, ?)",
-                        [ $provider->getProvider(), $provider->getID(), $userId, $provider->getName(), $provider->getData(), date('Y-m-d H:i:s') ]
+                        "INSERT INTO " . $this->options['tableProviders'] . " (provider, id, usr, name, data, created, used) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                        [ $provider->getProvider(), $provider->getID(), $userId, $provider->getName(), $provider->getData(), $provider->getCreated(), $provider->getUsed() ]
                     );
                 } else {
                     $this->db->query(
-                        "UPDATE " . $this->options['tableProviders'] . " SET name = ?, data = ? WHERE provider = ? AND id = ?",
-                        [ $provider->getName(), $provider->getData(), $provider->getProvider(), $provider->getID() ]
+                        "UPDATE " . $this->options['tableProviders'] . " SET name = ?, data = ?, created = ?, used = ? WHERE provider = ? AND id = ?",
+                        [ $provider->getName(), $provider->getData(), $provider->getCreated(), $provider->getUsed(), $provider->getProvider(), $provider->getID() ]
                     );
                 }
             }
-
             $this->db->commit();
             $user->setID($userId);
             parent::saveUser($user);
