@@ -144,12 +144,12 @@ class UserManagementDatabase extends UserManagement
                 )) {
                     $this->db->query(
                         "INSERT INTO " . $this->options['tableProviders'] . " (provider, id, usr, name, data, created, used) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                        [ $provider->getProvider(), $provider->getID(), $userId, $provider->getName(), $provider->getData(), $provider->getCreated(), $provider->getUsed() ]
+                        [ $provider->getProvider(), $provider->getID(), $userId, $provider->getName(), $provider->getData(), date('Y-m-d H:i:s', $provider->getCreated()), $provider->getUsed() ? date('Y-m-d H:i:s', $provider->getUsed()) : '0000-00-00 00:00:00' ]
                     );
                 } else {
                     $this->db->query(
                         "UPDATE " . $this->options['tableProviders'] . " SET name = ?, data = ?, created = ?, used = ? WHERE provider = ? AND id = ?",
-                        [ $provider->getName(), $provider->getData(), $provider->getCreated(), $provider->getUsed(), $provider->getProvider(), $provider->getID() ]
+                        [ $provider->getName(), $provider->getData(), date('Y-m-d H:i:s', $provider->getCreated()), $provider->getUsed() ? date('Y-m-d H:i:s', $provider->getUsed()) : '0000-00-00 00:00:00', $provider->getProvider(), $provider->getID() ]
                     );
                 }
             }
