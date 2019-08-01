@@ -43,7 +43,7 @@ class UserManagement implements UserManagementInterface
     {
         foreach ($this->users as $user) {
             foreach ($user->getProviders() as $prov) {
-                if ($provider === $prov->getProvider() && $id === $prov->getID()) {
+                if ($prov->enabled() && $provider === $prov->getProvider() && $id === $prov->getID()) {
                     return $user;
                 }
             }

@@ -148,8 +148,8 @@ class UserManagementDatabase extends UserManagement
                     );
                 } else {
                     $this->db->query(
-                        "UPDATE " . $this->options['tableProviders'] . " SET name = ?, data = ?, created = ?, used = ? WHERE provider = ? AND id = ?",
-                        [ $provider->getName(), $provider->getData(), date('Y-m-d H:i:s', $provider->getCreated()), $provider->getUsed() ? date('Y-m-d H:i:s', $provider->getUsed()) : '0000-00-00 00:00:00', $provider->getProvider(), $provider->getID() ]
+                        "UPDATE " . $this->options['tableProviders'] . " SET name = ?, data = ?, created = ?, used = ?, disabled = ? WHERE provider = ? AND id = ?",
+                        [ $provider->getName(), $provider->getData(), date('Y-m-d H:i:s', $provider->getCreated()), $provider->getUsed() ? date('Y-m-d H:i:s', $provider->getUsed()) : '0000-00-00 00:00:00', $provider->enabled() ? 0 : 1, $provider->getProvider(), $provider->getID() ]
                     );
                 }
             }
@@ -233,7 +233,7 @@ class UserManagementDatabase extends UserManagement
                 [ $id ], null, false, 'assoc_lc'
             );
             $providers = array_map(function ($v) {
-                return new Provider($v['provider'], $v['id'], $v['name'], $v['data'], $v['created'], $v['used']);
+                return new Provider($v['provider'], $v['id'], $v['name'], $v['data'], $v['created'], $v['used'], (int)$v['disabled'] === 1);
             }, $providers);
 
             $user = new User($data['usr'], $data, $groups, $primary, $providers);
@@ -251,7 +251,7 @@ class UserManagementDatabase extends UserManagement
     public function getUserByProviderID($provider, $id) : UserInterface
     {
         $user = $this->db->one(
-            "SELECT usr FROM " . $this->options['tableProviders'] . " WHERE provider = ? AND id = ?",
+            "SELECT usr FROM " . $this->options['tableProviders'] . " WHERE provider = ? AND id = ? AND disabled = 0",
             [ $provider, $id ]
         );
         if (!$user) {

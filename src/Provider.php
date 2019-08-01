@@ -10,8 +10,9 @@ class Provider
     protected $name = '';
     protected $created = null;
     protected $used = null;
+    protected $disabled = false;
 
-    public function __construct(string $provider, string $id, $name = '', $data = null, $created = null, $used = null)
+    public function __construct(string $provider, string $id, $name = '', $data = null, $created = null, $used = null, $disabled = false)
     {
         $this->provider = $provider;
         $this->id = $id;
@@ -19,6 +20,7 @@ class Provider
         $this->data = $data;
         $this->created = $created ? strtotime($created) : time();
         $this->used = $used ? strtotime($used) : null;
+        $this->disabled = $disabled;
     }
 
     public function getProvider()
@@ -64,5 +66,21 @@ class Provider
     {
         $this->used = $used ? strtotime($used) : null;
         return $this;
+    }
+    public function enabled()
+    {
+        return $this->disabled === false;
+    }
+    public function disabled()
+    {
+        return $this->disabled === true;
+    }
+    public function enable()
+    {
+        $this->disabled = false;
+    }
+    public function disable()
+    {
+        $this->disabled = true;
     }
 }
