@@ -395,6 +395,7 @@ class UserManagementDatabase extends UserManagement
                     [ $permission, date('Y-m-d H:i:s') ]
                 );
             }
+            $this->db->commit();
             parent::addPermission($permission);
             return $this;
         }
@@ -420,6 +421,7 @@ class UserManagementDatabase extends UserManagement
                 "DELETE FROM " . $this->options['tablePermissions'] . " WHERE perm = ?",
                 [ $permission ]
             );
+            $this->db->commit();
             parent::deletePermission($permission);
             return $this;
         }
