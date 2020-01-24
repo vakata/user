@@ -138,18 +138,22 @@ class UserManagementDatabase extends UserManagement
                 $par
             );
             foreach ($user->getProviders() as $provider) {
-                if (!$this->db->one(
-                    "SELECT 1 FROM " . $this->options['tableProviders'] . " WHERE usr = ? AND provider = ? AND id = ?",
-                    [ $userId, $provider->getProvider(), $provider->getID() ]
-                )) {
+                $tmp = $this->db->one(
+                    "SELECT usrprov, usr FROM " . $this->options['tableProviders'] . " WHERE provider = ? AND id = ?",
+                    [ $provider->getProvider(), $provider->getID() ]
+                );
+                if (!$tmp) {
                     $this->db->query(
                         "INSERT INTO " . $this->options['tableProviders'] . " (provider, id, usr, name, data, created, used) VALUES (?, ?, ?, ?, ?, ?, ?)",
                         [ $provider->getProvider(), $provider->getID(), $userId, $provider->getName(), $provider->getData(), date('Y-m-d H:i:s', $provider->getCreated()), $provider->getUsed() ? date('Y-m-d H:i:s', $provider->getUsed()) : null ]
                     );
                 } else {
+                    if ($tmp['usr'] !== $userId) {
+                        continue;
+                    }
                     $this->db->query(
-                        "UPDATE " . $this->options['tableProviders'] . " SET name = ?, data = ?, created = ?, used = ?, disabled = ? WHERE provider = ? AND id = ?",
-                        [ $provider->getName(), $provider->getData(), date('Y-m-d H:i:s', $provider->getCreated()), $provider->getUsed() ? date('Y-m-d H:i:s', $provider->getUsed()) : null, $provider->enabled() ? 0 : 1, $provider->getProvider(), $provider->getID() ]
+                        "UPDATE " . $this->options['tableProviders'] . " SET name = ?, data = ?, created = ?, used = ?, disabled = ? WHERE usrprov = ?",
+                        [ $provider->getName(), $provider->getData(), date('Y-m-d H:i:s', $provider->getCreated()), $provider->getUsed() ? date('Y-m-d H:i:s', $provider->getUsed()) : null, $provider->enabled() ? 0 : 1, $tmp['usrprov'] ]
                     );
                 }
             }
@@ -251,16 +255,17 @@ class UserManagementDatabase extends UserManagement
     public function getUserByProviderID($provider, $id) : UserInterface
     {
         $user = $this->db->one(
-            "SELECT usr FROM " . $this->options['tableProviders'] . " WHERE provider = ? AND id = ? AND disabled = 0",
+            "SELECT usr, usrprov FROM " . $this->options['tableProviders'] . " WHERE provider = ? AND id = ? AND disabled = 0",
             [ $provider, $id ]
         );
         if (!$user) {
             throw new UserException('User not found', 404);
         }
-        $user = $this->getUser($user);
+        $prov = $user['usrprov'];
+        $user = $this->getUser($user['usr']);
         $this->db->query(
-            "UPDATE " . $this->options['tableProviders'] . " SET used = ? WHERE provider = ? AND id = ?",
-            [ date('Y-m-d H:i:s'), $provider, $id ]
+            "UPDATE " . $this->options['tableProviders'] . " SET used = ? WHERE usrprov = ?",
+            [ date('Y-m-d H:i:s'), $prov ]
         );
         return $user;
     }
