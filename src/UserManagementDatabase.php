@@ -8,6 +8,7 @@ class UserManagementDatabase extends UserManagement
 {
     protected $db;
     protected $options;
+    protected $unique;
 
     /**
      * Static init method.
@@ -22,8 +23,9 @@ class UserManagementDatabase extends UserManagement
      * * tableUserPermissions - the table containing each user's permissions (defaults to "users_user_permissions")
      * @param  DBInterface $db the DB instance
      * @param  array  $options the options for future instances
+     * @param  array  $unique  array of fields to use to enforce user uniqueness (defaults to empty)
      */
-    public function __construct(DBInterface $db, array $options = [])
+    public function __construct(DBInterface $db, array $options = [], array $unique = [])
     {
         $options = array_merge([
             'tableUsers'             => 'users',
@@ -35,6 +37,7 @@ class UserManagementDatabase extends UserManagement
         ], $options);
 
         $this->options = $options;
+        $this->unique = $unique;
         $this->db = $db;
 
         $temp = $this->db->all("
@@ -79,18 +82,27 @@ class UserManagementDatabase extends UserManagement
             $userId = $user->getID();
             if ($userId && !$this->db->one("SELECT 1 FROM " . $this->options['tableUsers'] . " WHERE usr = ?", $userId)) {
                 $userId = null;
-            } else {
-                // if there is a valid email address - try to locate a user with this mail address
-                if (!$userId && filter_var((string)$data['mail'], FILTER_VALIDATE_EMAIL)) {
+            }
+            // no user id and uniqueness constraints are configured - try to find the same user
+            if (!$userId && count($this->unique)) {
+                $sql = [];
+                $par = [];
+                foreach ($this->unique as $key) {
+                    if (!isset($data[$key])) {
+                        $sql = [];
+                        break;
+                    }
+                    $sql[] = $key . ' = ?';
+                    $par[] = $data[$key];
+                }
+                if (count($sql)) {
                     $userId = $this->db->one(
-                        "SELECT usr FROM " . $this->options['tableUsers'] . " WHERE mail = ?",
-                        [ (string)$data['mail'] ]
+                        "SELECT usr FROM " . $this->options['tableUsers'] . " WHERE " . implode(' AND ', $sql),
+                        $par
                     );
                 }
             }
-
             unset($data['usr']);
-            // if there was not user with that email address, or the email was invalid - register a new user
             if (!$userId) {
                 $userId = $this->db->table($this->options['tableUsers'])->insert($data)['usr'];
             } else {
