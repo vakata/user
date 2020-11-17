@@ -264,7 +264,7 @@ class UserManagementDatabase extends UserManagement
      * @param  mixed   $id the user ID
      * @return \vakata\user\UserInterface a user instance
      */
-    public function getUserByProviderID($provider, $id) : UserInterface
+    public function getUserByProviderID($provider, $id, $updateUsed = false) : UserInterface
     {
         $user = $this->db->one(
             "SELECT usr, usrprov FROM " . $this->options['tableProviders'] . " WHERE provider = ? AND id = ? AND disabled = 0",
@@ -275,10 +275,12 @@ class UserManagementDatabase extends UserManagement
         }
         $prov = $user['usrprov'];
         $user = $this->getUser($user['usr']);
-        $this->db->query(
-            "UPDATE " . $this->options['tableProviders'] . " SET used = ? WHERE usrprov = ?",
-            [ date('Y-m-d H:i:s'), $prov ]
-        );
+        if ($updateUsed) {
+            $this->db->query(
+                "UPDATE " . $this->options['tableProviders'] . " SET used = ? WHERE usrprov = ?",
+                [ date('Y-m-d H:i:s'), $prov ]
+            );
+        }
         return $user;
     }
 
