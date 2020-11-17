@@ -111,10 +111,10 @@ class UserManagementDatabase extends UserManagement
             $groupIDs = array_map(function ($v) {
                 return $v->getID();
             }, $user->getGroups());
-            $groupIDs[] = '';
             $this->db->query(
-                "DELETE FROM " . $this->options['tableUserGroups'] . " WHERE usr = ? AND grp NOT IN (??)",
-                [ $userId, $groupIDs ]
+                "DELETE FROM " . $this->options['tableUserGroups'] . " WHERE usr = ?".
+                 (count($groupIDs) ? " AND grp NOT IN (??)" : ""),
+                 (count($groupIDs) ? [ $userId, $groupIDs ] : [$userId])
             );
             foreach ($user->getGroups() as $group) {
                 if (!$this->db->one(
@@ -138,15 +138,16 @@ class UserManagementDatabase extends UserManagement
                 );
             }
 
-            $sql = ['(provider = ? AND id = ?)'];
-            $par = [$userId, '', ''];
+            $sql = [];
+            $par = [$userId];
             foreach ($user->getProviders() as $provider) {
                 $sql[] = '(provider = ? AND id = ?)';
                 $par[] = $provider->getProvider();
                 $par[] = $provider->getID();
             }
             $this->db->query(
-                "DELETE FROM " . $this->options['tableProviders'] . " WHERE usr = ? AND NOT (".implode(' OR ', $sql).")",
+                "DELETE FROM " . $this->options['tableProviders'] . " WHERE usr = ?" .
+                 (count($sql) ? " AND NOT (".implode(' OR ', $sql).")" : ""),
                 $par
             );
             foreach ($user->getProviders() as $provider) {
@@ -333,10 +334,10 @@ class UserManagementDatabase extends UserManagement
                 );
             }
             $permissions = $group->getPermissions();
-            $permissions[] = '';
             $this->db->query(
-                "DELETE FROM " . $this->options['tableGroupsPermissions'] . " WHERE grp = ? AND perm NOT IN (??)",
-                [ $group->getID(), $permissions ]
+                "DELETE FROM " . $this->options['tableGroupsPermissions'] . " WHERE grp = ?" . 
+                 (count($permissions) ? " AND perm NOT IN (??)" : ""),
+                 (count($permissions) ? [ $group->getID(), $permissions ] : [$group->getID()])
             );
             foreach ($group->getPermissions() as $permission) {
                 if (!$this->db->one(
