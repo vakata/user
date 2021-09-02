@@ -1,6 +1,7 @@
 <?php
 namespace vakata\user;
 
+use vakata\cache\CacheInterface;
 use vakata\database\DBInterface;
 use vakata\database\DBException;
 
@@ -9,6 +10,9 @@ class UserManagementDatabase extends UserManagement
     protected $db;
     protected $options;
     protected $unique;
+    protected $cache;
+    protected $key;
+    protected $expire;
 
     /**
      * Static init method.
@@ -25,7 +29,14 @@ class UserManagementDatabase extends UserManagement
      * @param  array  $options the options for future instances
      * @param  array  $unique  array of fields to use to enforce user uniqueness (defaults to empty)
      */
-    public function __construct(DBInterface $db, array $options = [], array $unique = [])
+    public function __construct(
+        DBInterface $db,
+        array $options = [],
+        array $unique = [],
+        CacheInterface $cache = null,
+        string $key = 'umd',
+        int $expire = 86400
+    )
     {
         $options = array_merge([
             'tableUsers'             => 'users',
@@ -39,16 +50,28 @@ class UserManagementDatabase extends UserManagement
         $this->options = $options;
         $this->unique = $unique;
         $this->db = $db;
+        $this->cache = $cache;
+        $this->key = $key;
+        $this->expire = $expire;
 
-        $temp = $this->db->all("
-            SELECT
-                g.grp,
-                g.name,
-                p.perm
-            FROM " . $options['tableGroups'] . " g
-            LEFT JOIN " . $options['tableGroupsPermissions'] . " p ON p.grp = g.grp
-            ORDER BY g.grp, p.perm
-        ", null, null, false, 'assoc_lc');
+        $temp = null;
+        if ($this->cache && $this->expire) {
+            $temp = $this->cache->get($this->key . '_groups');
+        }
+        if (!isset($temp)) {
+            $temp = $this->db->all("
+                SELECT
+                    g.grp,
+                    g.name,
+                    p.perm
+                FROM " . $options['tableGroups'] . " g
+                LEFT JOIN " . $options['tableGroupsPermissions'] . " p ON p.grp = g.grp
+                ORDER BY g.grp, p.perm
+            ", null, null, false, 'assoc_lc');
+            if ($this->cache && $this->expire) {
+                $this->cache->set($this->key . '_groups', $temp, null, $this->expire);
+            }
+        }
         $groups = [];
         foreach ($temp as $row) {
             if (!isset($groups[$row['grp']])) {
@@ -62,7 +85,16 @@ class UserManagementDatabase extends UserManagement
             $groups[$id] = new Group($id, $group['name'], $group['permissions']);
         }
 
-        $permissions = $this->db->all("SELECT perm FROM " . $options['tablePermissions'] . " ORDER BY perm");
+        $permissions = null;
+        if ($this->cache && $this->expire) {
+            $permissions = $this->cache->get($this->key . '_perms');
+        }
+        if (!isset($permissions)) {
+            $permissions = $this->db->all("SELECT perm FROM " . $options['tablePermissions'] . " ORDER BY perm");
+            if ($this->cache && $this->expire) {
+                $this->cache->set($this->key . '_perms', $permissions, null, $this->expire);
+            }
+        }
 
         parent::__construct($groups, $permissions);
     }
@@ -361,6 +393,9 @@ class UserManagementDatabase extends UserManagement
             }
             $this->db->commit();
             parent::saveGroup($group);
+            if ($this->cache) {
+                $this->cache->delete($this->key . '_groups');
+            }
             return $this;
         } catch (\Exception $e) {
             $this->db->rollback($trans);
@@ -390,6 +425,9 @@ class UserManagementDatabase extends UserManagement
             );
             $this->db->commit();
             parent::deleteGroup($group);
+            if ($this->cache) {
+                $this->cache->delete($this->key . '_groups');
+            }
             return $this;
         }
         catch (\Exception $e) {
@@ -417,6 +455,9 @@ class UserManagementDatabase extends UserManagement
             }
             $this->db->commit();
             parent::addPermission($permission);
+            if ($this->cache) {
+                $this->cache->delete($this->key . '_perms');
+            }
             return $this;
         }
         catch (\Exception $e) {
@@ -443,6 +484,9 @@ class UserManagementDatabase extends UserManagement
             );
             $this->db->commit();
             parent::deletePermission($permission);
+            if ($this->cache) {
+                $this->cache->delete($this->key . '_perms');
+            }
             return $this;
         }
         catch (\Exception $e) {
