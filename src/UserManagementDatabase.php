@@ -262,19 +262,18 @@ class UserManagementDatabase extends UserManagement
                 throw new UserException("User does not exist");
             }
             $primary = null;
-            $groups = $this->db->all(
-                "SELECT grp FROM " . $this->options['tableUserGroups'] . " WHERE usr = ? ORDER BY grp",
-                [ $id ]
-            );
-            $groups = array_map(function ($v) {
-                return $this->getGroup($v);
-            }, $groups);
-            $primary = $this->db->one(
-                "SELECT grp FROM " . $this->options['tableUserGroups'] . " WHERE usr = ? AND main = 1",
-                [ $id ]
-            );
-            if ($primary) {
-                $primary = $this->getGroup($primary);
+            $groups = [];
+            foreach (
+                $this->db->all(
+                    "SELECT grp, main FROM " . $this->options['tableUserGroups'] . " WHERE usr = ? ORDER BY grp",
+                    [ $id ]
+                ) as $v
+            ) {
+                $grp = $this->getGroup($v['grp']);
+                if ((int)$v['main']) {
+                    $primary = $grp;
+                }
+                $groups[] = $this->getGroup($v['grp']);
             }
 
             $providers = $this->db->all(
