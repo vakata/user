@@ -22,7 +22,7 @@ interface UserManagementInterface
     public function groups() : array;
     public function groupExists(string $group) : bool;
 
-    public function getUserByProviderID($provider, $id) : UserInterface;
+    public function getUserByProviderID($provider, $id, $updateUsed = false) : UserInterface;
 
     public function searchUsers(array $query) : array;
 }

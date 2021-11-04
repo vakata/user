@@ -39,7 +39,7 @@ class UserManagement implements UserManagementInterface
      * @param  mixed   $id the user ID
      * @return \vakata\user\UserInterface a user instance
      */
-    public function getUserByProviderID($provider, $id) : UserInterface
+    public function getUserByProviderID($provider, $id, $updateUsed = false) : UserInterface
     {
         foreach ($this->users as $user) {
             foreach ($user->getProviders() as $prov) {

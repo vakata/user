@@ -4,6 +4,7 @@ namespace vakata\user;
 interface GroupInterface
 {
     public function getID();
+    public function setID($id);
     public function getName();
     public function setName(string $name);
     public function getPermissions() : array;
