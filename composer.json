@@ -16,13 +16,8 @@
         }
     ],
     "require": {
-        "php" : ">=7.0.0",
-        "vakata/kvstore" : "1.*"
-    },
-    "require-dev": {
-        "phpunit/phpunit" : "4.*",
-        "codeclimate/php-test-reporter": "dev-master",
-        "clean/phpdoc-md": "dev-master"
+        "php" : ">=8.0.0",
+        "vakata/kvstore" : "2.*"
     },
     "suggest": {
         "vakata/database" : "Install if you plan on using UserManagementDatabase"
@@ -36,10 +31,5 @@
         "psr-4": {
             "vakata\\user\\test\\": "tests"
         }
-    },
-    "scripts": {
-        "test": "phpunit",
-        "psr2": "php-cs-fixer fix ./src",
-        "phpdoc": "phpdoc-md"
     }
 }

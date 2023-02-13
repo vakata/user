@@ -74,6 +74,7 @@ class UserManagementDatabase extends UserManagement
         }
         $groups = [];
         foreach ($temp as $row) {
+            $row['grp'] = (string)$row['grp'];
             if (!isset($groups[$row['grp']])) {
                 $groups[$row['grp']] = [ 'name' => $row['name'], 'permissions' => [] ];
             }
@@ -193,7 +194,7 @@ class UserManagementDatabase extends UserManagement
                         [ $provider->getProvider(), $provider->getID(), $userId, $provider->getName(), $provider->getData(), date('Y-m-d H:i:s', $provider->getCreated()), $provider->getUsed() ? date('Y-m-d H:i:s', $provider->getUsed()) : null ]
                     );
                 } else {
-                    if ($tmp['usr'] !== $userId) {
+                    if ((string)$tmp['usr'] !== (string)$userId) {
                         continue;
                     }
                     $this->db->query(
@@ -203,7 +204,7 @@ class UserManagementDatabase extends UserManagement
                 }
             }
             $this->db->commit();
-            $user->setID($userId);
+            $user->setID((string)$userId);
             parent::saveUser($user);
             return $this;
         }
@@ -284,7 +285,7 @@ class UserManagementDatabase extends UserManagement
                 return new Provider($v['provider'], $v['id'], $v['name'], $v['data'], $v['created'], $v['used'], (int)$v['disabled'] === 1);
             }, $providers);
 
-            $user = new User($data['usr'], $data, $groups, $primary, $providers);
+            $user = new User((string)$data['usr'], $data, $groups, $primary, $providers);
             parent::saveUser($user);
             return $user;
         }
@@ -293,10 +294,10 @@ class UserManagementDatabase extends UserManagement
     /**
      * Get a user instance by provider ID
      * @param  string  $provider the authentication provider
-     * @param  mixed   $id the user ID
+     * @param  string  $id the user ID
      * @return \vakata\user\UserInterface a user instance
      */
-    public function getUserByProviderID($provider, $id, $updateUsed = false) : UserInterface
+    public function getUserByProviderID(string $provider, string $id, $updateUsed = false) : UserInterface
     {
         $user = $this->db->one(
             "SELECT usr, usrprov FROM " . $this->options['tableProviders'] . " WHERE provider = ? AND id = ? AND disabled = 0",
@@ -306,7 +307,7 @@ class UserManagementDatabase extends UserManagement
             throw new UserException('User not found', 404);
         }
         $prov = $user['usrprov'];
-        $user = $this->getUser($user['usr']);
+        $user = $this->getUser((string)$user['usr']);
         if ($updateUsed) {
             $this->db->query(
                 "UPDATE " . $this->options['tableProviders'] . " SET used = ? WHERE usrprov = ?",
@@ -321,7 +322,7 @@ class UserManagementDatabase extends UserManagement
      * @param  string   $id the ID to search for
      * @return \vakata\user\GroupInterface       the group instance
      */
-    public function getGroup($id) : GroupInterface
+    public function getGroup(string $id) : GroupInterface
     {
         try {
             return parent::getGroup($id);
@@ -357,7 +358,7 @@ class UserManagementDatabase extends UserManagement
                     'name' => $group->getName(),
                     'created' => date('Y-m-d H:i:s')
                 ])['grp'];
-                $group->setID($groupID);
+                $group->setID((string)$groupID);
             } else {
                 $this->db->query(
                     "UPDATE " . $this->options['tableGroups'] . " SET name = ? WHERE grp = ?",
@@ -504,7 +505,7 @@ class UserManagementDatabase extends UserManagement
             $ids = $q->select(['usr']);
             $matches = [];
             foreach ($ids as $id) {
-                $matches[] = $this->getUser($id['usr']);
+                $matches[] = $this->getUser((string)$id['usr']);
             }
         } catch (DBException $e) {
             throw new UserException("Invalid filter");

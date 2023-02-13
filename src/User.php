@@ -9,22 +9,28 @@ class User implements UserInterface
 {
     public static $permissions;
 
-    protected $id;
-    protected $data;
-    protected $storage;
-    protected $groups = [];
-    protected $primary = null;
-    protected $providers = [];
+    protected string $id;
+    protected array $data;
+    protected StorageInterface $storage;
+    protected array $groups = [];
+    protected ?GroupInterface $primary = null;
+    protected array $providers = [];
 
     /**
      * Create a new user instance.
-     * @param  mixed       $id          the user ID
+     * @param  string      $id          the user ID
      * @param  array       $data        optional array of user data (defaults to an empty array)
      * @param  array       $groups      optional array of GroupInterface objects the user belongs to (defaults to none)
      * @param  array       $providers   optional array of Provider objects identifying the user (defaults to none)
      * @param  \vakata\user\GroupInterface $primary     the user's primary group name (defaults to `null`)
      */
-    public function __construct($id, array $data = [], array $groups = [], GroupInterface $primary = null, array $providers = [])
+    public function __construct(
+        string $id,
+        array $data = [],
+        array $groups = [],
+        GroupInterface $primary = null,
+        array $providers = []
+    )
     {
         $this->id = $id;
         $this->data = $data;
@@ -37,9 +43,9 @@ class User implements UserInterface
     }
     /**
      * get the user's ID
-     * @return mixed the user ID
+     * @return string the user ID
      */
-    public function getID()
+    public function getID(): string
     {
         return $this->id;
     }
@@ -47,7 +53,7 @@ class User implements UserInterface
      * set the user's ID
      * @return self
      */
-    public function setID($id) : UserInterface
+    public function setID(string $id) : UserInterface
     {
         $this->id = $id;
         return $this;
@@ -125,7 +131,7 @@ class User implements UserInterface
      * Get the user's primary group
      * @param  string      $group the user's primary group
      */
-    public function getPrimaryGroup()
+    public function getPrimaryGroup(): ?GroupInterface
     {
         return $this->primary !== null ? $this->primary : (count($this->groups) ? current($this->groups) : null);
     }

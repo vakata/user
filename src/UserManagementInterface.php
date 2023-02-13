@@ -6,11 +6,11 @@ use vakata\jwt\JWT;
 
 interface UserManagementInterface
 {
-    public function getUser($id) : UserInterface;
+    public function getUser(string $id) : UserInterface;
     public function saveUser(UserInterface $user) : UserManagementInterface;
     public function deleteUser(UserInterface $user) : UserManagementInterface;
 
-    public function getGroup($id) : GroupInterface;
+    public function getGroup(string $id) : GroupInterface;
     public function saveGroup(GroupInterface $group) : UserManagementInterface;
     public function deleteGroup(GroupInterface $group) : UserManagementInterface;
 
@@ -22,7 +22,7 @@ interface UserManagementInterface
     public function groups() : array;
     public function groupExists(string $group) : bool;
 
-    public function getUserByProviderID($provider, $id) : UserInterface;
+    public function getUserByProviderID(string $provider, string $id) : UserInterface;
 
     public function searchUsers(array $query) : array;
 }

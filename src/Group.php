@@ -3,17 +3,17 @@ namespace vakata\user;
 
 class Group implements GroupInterface
 {
-    protected $id;
-    protected $name;
-    protected $permissions;
+    protected string $id;
+    protected string $name;
+    protected array $permissions;
 
     /**
      * Create a new group instance.
-     * @param  mixed       $id          the group ID
+     * @param  string      $id          the group ID
      * @param  string      $name        the group frienly name
      * @param  array       $permissions optional array of permissions the group has (defaults to an empty array)
      */
-    public function __construct($id, string $name, array $permissions = [])
+    public function __construct(string $id, string $name, array $permissions = [])
     {
         $this->id = $id;
         $this->name = $name;
@@ -21,9 +21,9 @@ class Group implements GroupInterface
     }
     /**
      * get the group's ID
-     * @return mixed the group ID
+     * @return string the group ID
      */
-    public function getID()
+    public function getID(): string
     {
         return $this->id;
     }
@@ -31,7 +31,7 @@ class Group implements GroupInterface
      * get the group's ID
      * @return mixed the group ID
      */
-    public function getName()
+    public function getName(): string
     {
         return $this->name;
     }
@@ -39,7 +39,7 @@ class Group implements GroupInterface
      * set the group's ID
      * @return self
      */
-    public function setID($id)
+    public function setID(string $id): self
     {
         $this->id = $id;
         return $this;
@@ -48,7 +48,7 @@ class Group implements GroupInterface
      * set the group's friendly name
      * @return self
      */
-    public function setName(string $name)
+    public function setName(string $name): self
     {
         $this->name = $name;
         return $this;
@@ -75,7 +75,7 @@ class Group implements GroupInterface
      * @param  string        $permission the permission to give
      * @return  self
      */
-    public function addPermission(string $permission) : GroupInterface
+    public function addPermission(string $permission) : self
     {
         $this->permissions[] = $permission;
         $this->permissions = array_values(array_unique($this->permissions));
@@ -86,7 +86,7 @@ class Group implements GroupInterface
      * @param  string           $permission the permission to remove
      * @return  self
      */
-    public function deletePermission(string $permission) : GroupInterface
+    public function deletePermission(string $permission) : self
     {
         $index = array_search($permission, $this->permissions);
         if ($index !== false) {

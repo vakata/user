@@ -4,9 +4,9 @@ namespace vakata\user;
 
 class UserManagement implements UserManagementInterface
 {
-    protected $permissions = [];
-    protected $users = [];
-    protected $groups = [];
+    protected array $permissions = [];
+    protected array $users = [];
+    protected array $groups = [];
 
     /**
      * create an instance
@@ -39,7 +39,7 @@ class UserManagement implements UserManagementInterface
      * @param  mixed   $id the user ID
      * @return \vakata\user\UserInterface a user instance
      */
-    public function getUserByProviderID($provider, $id) : UserInterface
+    public function getUserByProviderID(string $provider, string $id) : UserInterface
     {
         foreach ($this->users as $user) {
             foreach ($user->getProviders() as $prov) {
@@ -87,10 +87,10 @@ class UserManagement implements UserManagementInterface
     
     /**
      * Get a user instance by ID
-     * @param  mixed  $id the user ID
+     * @param  string  $id the user ID
      * @return \vakata\user\UserInterface a user instance
      */
-    public function getUser($id) : UserInterface
+    public function getUser(string $id) : UserInterface
     {
         if (!isset($this->users[$id])) {
             throw new UserException('User not found', 404);
@@ -116,7 +116,7 @@ class UserManagement implements UserManagementInterface
     {
         $index = array_search($user, $this->users);
         if ($index !== false) {
-            unset($this->user[$index]);
+            unset($this->users[$index]);
         }
         return $this;
     }
@@ -125,7 +125,7 @@ class UserManagement implements UserManagementInterface
      * @param  string   $id the ID to search for
      * @return \vakata\user\GroupInterface       the group instance
      */
-    public function getGroup($id) : GroupInterface
+    public function getGroup(string $id) : GroupInterface
     {
         if (!isset($this->groups[$id])) {
             throw new UserException('Group not found');

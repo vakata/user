@@ -4,15 +4,23 @@ namespace vakata\user;
 
 class Provider
 {
-    protected $provider = null;
-    protected $id = null;
-    protected $data = null;
-    protected $name = '';
-    protected $created = null;
-    protected $used = null;
-    protected $disabled = false;
+    protected string $provider;
+    protected string $id;
+    protected string $name;
+    protected string $data;
+    protected int $created;
+    protected ?int $used = null;
+    protected bool $disabled = false;
 
-    public function __construct(string $provider, string $id, $name = '', $data = null, $created = null, $used = null, $disabled = false)
+    public function __construct(
+        string $provider,
+        string $id,
+        string $name = '',
+        string $data = null,
+        string $created = null,
+        string $used = null,
+        bool $disabled = false
+    )
     {
         $this->provider = $provider;
         $this->id = $id;
@@ -23,63 +31,63 @@ class Provider
         $this->disabled = $disabled;
     }
 
-    public function getProvider()
+    public function getProvider(): string
     {
         return $this->provider;
     }
-    public function getID()
+    public function getID(): string
     {
         return $this->id;
     }
-    public function getName()
+    public function getName(): string
     {
         return $this->name;
     }
-    public function setName(string $name)
+    public function setName(string $name): self
     {
         $this->name = $name;
         return $this;
     }
-    public function getData()
+    public function getData(): string
     {
         return $this->data;
     }
-    public function setData($data)
+    public function setData(string $data): self
     {
         $this->data = $data;
         return $this;
     }
-    public function getCreated()
+    public function getCreated(): int
     {
         return $this->created;
     }
-    public function getUsed()
+    public function getUsed(): ?int
     {
         return $this->used;
     }
-    public function setCreated($created)
+    public function setCreated(string $created): self
     {
         $this->created = strtotime($created);
         return $this;
     }
-    public function setUsed($used)
+    public function setUsed(string $used): self
     {
         $this->used = $used ? strtotime($used) : null;
         return $this;
     }
-    public function enabled()
+    public function enabled() : bool
     {
         return $this->disabled === false;
     }
-    public function disabled()
+    public function disabled(): bool
     {
         return $this->disabled === true;
     }
-    public function enable()
+    public function enable(): void
     {
         $this->disabled = false;
     }
-    public function disable()
+    public function disable(): void
     {
         $this->disabled = true;
     }
