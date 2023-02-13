@@ -297,7 +297,7 @@ class UserManagementDatabase extends UserManagement
      * @param  string  $id the user ID
      * @return \vakata\user\UserInterface a user instance
      */
-    public function getUserByProviderID(string $provider, string $id, $updateUsed = false) : UserInterface
+    public function getUserByProviderID(string $provider, string $id, bool $updateUsed = false) : UserInterface
     {
         $user = $this->db->one(
             "SELECT usr, usrprov FROM " . $this->options['tableProviders'] . " WHERE provider = ? AND id = ? AND disabled = 0",

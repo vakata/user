@@ -21,8 +21,6 @@ interface UserManagementInterface
     public function permissionExists(string $permission) : bool;
     public function groups() : array;
     public function groupExists(string $group) : bool;
-
-    public function getUserByProviderID(string $provider, string $id) : UserInterface;
-
+    public function getUserByProviderID(string $provider, string $id, bool $updateUsed = false) : UserInterface;
     public function searchUsers(array $query) : array;
 }

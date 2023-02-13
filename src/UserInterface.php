@@ -12,7 +12,7 @@ interface UserInterface extends StorageInterface
     public function inGroup($group) : bool;
     public function getGroups() : array;
     public function getPrimaryGroup(): ?GroupInterface;
-    public function hasPermission(string $permission) : bool;
+    public function hasPermission(string $permission, bool $strict = false) : bool;
     public function getPermissions() : array;
     public function getProviders() : array;
 
