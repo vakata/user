@@ -73,7 +73,7 @@ class User implements UserInterface
      * @param  string $separator the separator to use when traversing arrays, defaults to '.'
      * @return mixed             the key value or the default
      */
-    public function get($key, $default = null, $separator = '.')
+    public function get(string $key, mixed $default = null, string $separator = '.'): mixed
     {
         if ($key === 'id') {
             return $this->id;
@@ -86,7 +86,7 @@ class User implements UserInterface
      * @param  mixed  $value     the new value for the key
      * @param  string $separator the separator to use when traversing arrays, defaults to '.'
      */
-    public function set($key, $value, $separator = '.')
+    public function set(string $key, mixed $value, string $separator = '.'): mixed
     {
         return $this->storage->set($key, $value, $separator);
     }
@@ -96,7 +96,7 @@ class User implements UserInterface
      * @param  string $separator the string used to separate levels of the array, defaults to "."
      * @return mixed|null        the value that was just deleted or null
      */
-    public function del($key, $separator = '.')
+    public function del(string $key, string $separator = '.'): mixed
     {
         return $this->storage->del($key, $separator);
     }
