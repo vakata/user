@@ -16,16 +16,16 @@ class Provider
         string $provider,
         string $id,
         string $name = '',
-        string $data = null,
-        string $created = null,
-        string $used = null,
+        ?string $data = null,
+        ?string $created = null,
+        ?string $used = null,
         bool $disabled = false
     )
     {
         $this->provider = $provider;
         $this->id = $id;
         $this->name = $name;
-        $this->data = $data;
+        $this->data = (string)$data;
         $this->created = $created ? strtotime($created) : time();
         $this->used = $used ? strtotime($used) : null;
         $this->disabled = $disabled;
