@@ -2,6 +2,7 @@
 namespace vakata\user;
 
 use vakata\cache\CacheInterface;
+use vakata\cache\CacheException;
 use vakata\database\DBInterface;
 use vakata\database\DBException;
 
@@ -56,7 +57,11 @@ class UserManagementDatabase extends UserManagement
 
         $temp = null;
         if ($this->cache && $this->expire) {
-            $temp = $this->cache->get($this->key . '_groups');
+            try {
+                $temp = $this->cache->get($this->key . '_groups');
+            } catch (CacheException $ignore) {
+                $temp = null;
+            }
         }
         if (!isset($temp)) {
             $temp = $this->db->all("
@@ -69,7 +74,9 @@ class UserManagementDatabase extends UserManagement
                 ORDER BY g.grp, p.perm
             ", null, null, false, 'assoc_lc');
             if ($this->cache && $this->expire) {
-                $this->cache->set($this->key . '_groups', $temp, null, $this->expire);
+                try {
+                    $this->cache->set($this->key . '_groups', $temp, null, $this->expire);
+                } catch (CacheException $ignore) {}
             }
         }
         $groups = [];
@@ -88,12 +95,18 @@ class UserManagementDatabase extends UserManagement
 
         $permissions = null;
         if ($this->cache && $this->expire) {
-            $permissions = $this->cache->get($this->key . '_perms');
+            try {
+                $permissions = $this->cache->get($this->key . '_perms');
+            } catch (CacheException $ignore) {
+                $permissions = null;
+            }
         }
         if (!isset($permissions)) {
             $permissions = $this->db->all("SELECT perm FROM " . $options['tablePermissions'] . " ORDER BY perm");
             if ($this->cache && $this->expire) {
-                $this->cache->set($this->key . '_perms', $permissions, null, $this->expire);
+                try {
+                    $this->cache->set($this->key . '_perms', $permissions, null, $this->expire);
+                } catch (CacheException $ignore) {}
             }
         }
 
@@ -392,15 +405,17 @@ class UserManagementDatabase extends UserManagement
                 }
             }
             $this->db->commit();
-            parent::saveGroup($group);
-            if ($this->cache) {
-                $this->cache->delete($this->key . '_groups');
-            }
-            return $this;
         } catch (\Exception $e) {
             $this->db->rollback($trans);
             throw $e;
         }
+        parent::saveGroup($group);
+        try {
+            if ($this->cache) {
+                $this->cache->delete($this->key . '_groups');
+            }
+        } catch (CacheException $ignore) {}
+        return $this;
     }
     /**
      * Delete a group.
@@ -424,16 +439,17 @@ class UserManagementDatabase extends UserManagement
                 [ $group->getID() ]
             );
             $this->db->commit();
-            parent::deleteGroup($group);
-            if ($this->cache) {
-                $this->cache->delete($this->key . '_groups');
-            }
-            return $this;
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             $this->db->rollback($trans);
             throw $e;
         }
+        parent::deleteGroup($group);
+        try {
+            if ($this->cache) {
+                $this->cache->delete($this->key . '_groups');
+            }
+        } catch (CacheException $ignore) {}
+        return $this;
     }
     /**
      * Add a permission.
@@ -454,16 +470,17 @@ class UserManagementDatabase extends UserManagement
                 );
             }
             $this->db->commit();
-            parent::addPermission($permission);
-            if ($this->cache) {
-                $this->cache->delete($this->key . '_perms');
-            }
-            return $this;
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             $this->db->rollback($trans);
             throw $e;
         }
+        parent::addPermission($permission);
+        try {
+            if ($this->cache) {
+                $this->cache->delete($this->key . '_perms');
+            }
+        } catch (CacheException $ignore) {}
+        return $this;
     }
     /**
      * Remove a permission.
@@ -483,16 +500,17 @@ class UserManagementDatabase extends UserManagement
                 [ $permission ]
             );
             $this->db->commit();
-            parent::deletePermission($permission);
-            if ($this->cache) {
-                $this->cache->delete($this->key . '_perms');
-            }
-            return $this;
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             $this->db->rollback($trans);
             throw $e;
         }
+        parent::deletePermission($permission);
+        try {
+            if ($this->cache) {
+                $this->cache->delete($this->key . '_perms');
+            }
+        } catch (CacheException $ignore) {}
+        return $this;
     }
 
     public function searchUsers(array $query) : array
