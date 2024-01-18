@@ -69,7 +69,7 @@ class UserManagementDatabase extends UserManagement
                 ORDER BY g.grp, p.perm
             ", null, null, false, 'assoc_lc');
             if ($this->cache && $this->expire) {
-                $this->cache->set($this->key . '_groups', $temp, null, $this->expire);
+                $this->cache->set($this->key . '_groups', $temp, $this->expire);
             }
         }
         $groups = [];
@@ -93,7 +93,7 @@ class UserManagementDatabase extends UserManagement
         if (!isset($permissions)) {
             $permissions = $this->db->all("SELECT perm FROM " . $options['tablePermissions'] . " ORDER BY perm");
             if ($this->cache && $this->expire) {
-                $this->cache->set($this->key . '_perms', $permissions, null, $this->expire);
+                $this->cache->set($this->key . '_perms', $permissions, $this->expire);
             }
         }
 

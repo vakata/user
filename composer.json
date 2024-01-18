@@ -20,7 +20,8 @@
         "vakata/kvstore" : "2.*"
     },
     "suggest": {
-        "vakata/database" : "Install if you plan on using UserManagementDatabase"
+        "vakata/database" : "Install if you plan on using UserManagementDatabase",
+        "vakata/cache" : "Install if you want to speed up the performance of UserManagementDatabase"
     },
     "autoload": {
         "psr-4": {
