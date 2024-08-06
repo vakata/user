@@ -68,7 +68,7 @@ class Group implements GroupInterface
      */
     public function hasPermission(string $permission) : bool
     {
-        return in_array($permission, $this->permissions);
+        return in_array($permission, $this->permissions, true);
     }
     /**
      * Give the group a new permission
@@ -88,7 +88,7 @@ class Group implements GroupInterface
      */
     public function deletePermission(string $permission) : self
     {
-        $index = array_search($permission, $this->permissions);
+        $index = array_search($permission, $this->permissions, true);
         if ($index !== false) {
             unset($this->permissions[$index]);
             $this->permissions = array_values($this->permissions);

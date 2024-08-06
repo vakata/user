@@ -143,7 +143,7 @@ class User implements UserInterface
      */
     public function hasPermission(string $permission, bool $strict = false) : bool
     {
-        if (!in_array($permission, static::$permissions)) {
+        if (!in_array($permission, static::$permissions, true)) {
             return $strict ? false : true;
         }
         foreach ($this->groups as $group) {
@@ -230,7 +230,7 @@ class User implements UserInterface
      */
     public function deleteProvider(Provider $provider) : UserInterface
     {
-        if (($index = array_search($provider, $this->providers)) !== false) {
+        if (($index = array_search($provider, $this->providers, true)) !== false) {
             unset($this->providers[$index]);
         }
         return $this;

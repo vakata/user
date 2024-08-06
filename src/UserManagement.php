@@ -65,7 +65,7 @@ class UserManagement implements UserManagementInterface
      */
     public function permissionExists(string $permission) : bool
     {
-        return in_array($permission, $this->permissions);
+        return in_array($permission, $this->permissions, true);
     }
     /**
      * Get a list of groups available in the system.
@@ -114,7 +114,7 @@ class UserManagement implements UserManagementInterface
      */
     public function deleteUser(UserInterface $user) : UserManagementInterface
     {
-        $index = array_search($user, $this->users);
+        $index = array_search($user, $this->users, true);
         if ($index !== false) {
             unset($this->users[$index]);
         }
@@ -153,7 +153,7 @@ class UserManagement implements UserManagementInterface
      */
     public function deleteGroup(GroupInterface $group) : UserManagementInterface
     {
-        $index = array_search($group, $this->groups);
+        $index = array_search($group, $this->groups, true);
         if ($index !== false) {
             unset($this->groups[$index]);
         }
@@ -178,7 +178,7 @@ class UserManagement implements UserManagementInterface
      */
     public function deletePermission(string $permission) : UserManagementInterface
     {
-        $index = array_search($permission, $this->permissions);
+        $index = array_search($permission, $this->permissions, true);
         if ($index !== false) {
             unset($this->permissions[$index]);
             $this->permissions = array_values($this->permissions);
