@@ -28,7 +28,7 @@ class User implements UserInterface
         string $id,
         array $data = [],
         array $groups = [],
-        GroupInterface $primary = null,
+        ?GroupInterface $primary = null,
         array $providers = []
     )
     {

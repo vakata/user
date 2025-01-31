@@ -34,7 +34,7 @@ class UserManagementDatabase extends UserManagement
         DBInterface $db,
         array $options = [],
         array $unique = [],
-        CacheInterface $cache = null,
+        ?CacheInterface $cache = null,
         string $key = 'umd',
         int $expire = 86400
     )
@@ -42,10 +42,10 @@ class UserManagementDatabase extends UserManagement
         $options = array_merge([
             'tableUsers'             => 'users',
             'tableProviders'         => 'users_providers',
-            'tableGroups'            => 'users_groups',
-            'tablePermissions'       => 'users_permissions',
-            'tableGroupsPermissions' => 'users_groups_permissions',
-            'tableUserGroups'        => 'users_user_groups'
+            'tableGroups'            => null,
+            'tablePermissions'       => null,
+            'tableGroupsPermissions' => null,
+            'tableUserGroups'        => null
         ], $options);
 
         $this->options = $options;
@@ -64,15 +64,18 @@ class UserManagementDatabase extends UserManagement
             }
         }
         if (!isset($temp)) {
-            $temp = $this->db->all("
-                SELECT
-                    g.grp,
-                    g.name,
-                    p.perm
-                FROM " . $options['tableGroups'] . " g
-                LEFT JOIN " . $options['tableGroupsPermissions'] . " p ON p.grp = g.grp
-                ORDER BY g.grp, p.perm
-            ", null, null, false, 'assoc_lc');
+            $temp = [];
+            if (isset($options['tableGroups']) && isset($options['tableGroupsPermissions'])) {
+                $temp = $this->db->all("
+                    SELECT
+                        g.grp,
+                        g.name,
+                        p.perm
+                    FROM " . $options['tableGroups'] . " g
+                    LEFT JOIN " . $options['tableGroupsPermissions'] . " p ON p.grp = g.grp
+                    ORDER BY g.grp, p.perm
+                ", null, null, false, 'assoc_lc');
+            }
             if ($this->cache && $this->expire) {
                 try {
                     $this->cache->set($this->key . '_groups', $temp, $this->expire);
@@ -102,7 +105,10 @@ class UserManagementDatabase extends UserManagement
             }
         }
         if (!isset($permissions)) {
-            $permissions = $this->db->all("SELECT perm FROM " . $options['tablePermissions'] . " ORDER BY perm");
+            $permissions = [];
+            if (isset($options['tablePermissions'])) {
+                $permissions = $this->db->all("SELECT perm FROM " . $options['tablePermissions'] . " ORDER BY perm");
+            }
             if ($this->cache && $this->expire) {
                 try {
                     $this->cache->set($this->key . '_perms', $permissions, $this->expire);
@@ -157,31 +163,33 @@ class UserManagementDatabase extends UserManagement
             $groupIDs = array_map(function ($v) {
                 return $v->getID();
             }, $user->getGroups());
-            $this->db->query(
-                "DELETE FROM " . $this->options['tableUserGroups'] . " WHERE usr = ?".
-                 (count($groupIDs) ? " AND grp NOT IN (??)" : ""),
-                 (count($groupIDs) ? [ $userId, $groupIDs ] : [$userId])
-            );
-            foreach ($user->getGroups() as $group) {
-                if (!$this->db->one(
-                    "SELECT 1 FROM " . $this->options['tableUserGroups'] . " WHERE usr = ? AND grp = ?",
-                    [ $userId, $group->getID() ]
-                )) {
+            if (isset($this->options['tableUserGroups'])) {
+                $this->db->query(
+                    "DELETE FROM " . $this->options['tableUserGroups'] . " WHERE usr = ?".
+                    (count($groupIDs) ? " AND grp NOT IN (??)" : ""),
+                    (count($groupIDs) ? [ $userId, $groupIDs ] : [$userId])
+                );
+                foreach ($user->getGroups() as $group) {
+                    if (!$this->db->one(
+                        "SELECT 1 FROM " . $this->options['tableUserGroups'] . " WHERE usr = ? AND grp = ?",
+                        [ $userId, $group->getID() ]
+                    )) {
+                        $this->db->query(
+                            "INSERT INTO " . $this->options['tableUserGroups'] . " (usr, grp, created) VALUES (?, ?, ?)",
+                            [ $userId, $group->getID(), date('Y-m-d H:i:s') ]
+                        );
+                    }
+                }
+                $this->db->query(
+                    "UPDATE " . $this->options['tableUserGroups'] . " SET main = 0 WHERE usr = ?",
+                    [ $userId ]
+                );
+                if ($user->getPrimaryGroup()) {
                     $this->db->query(
-                        "INSERT INTO " . $this->options['tableUserGroups'] . " (usr, grp, created) VALUES (?, ?, ?)",
-                        [ $userId, $group->getID(), date('Y-m-d H:i:s') ]
+                        "UPDATE " . $this->options['tableUserGroups'] . " SET main = 1 WHERE usr = ? AND grp = ?",
+                        [ $userId, $user->getPrimaryGroup()->getID() ]
                     );
                 }
-            }
-            $this->db->query(
-                "UPDATE " . $this->options['tableUserGroups'] . " SET main = 0 WHERE usr = ?",
-                [ $userId ]
-            );
-            if ($user->getPrimaryGroup()) {
-                $this->db->query(
-                    "UPDATE " . $this->options['tableUserGroups'] . " SET main = 1 WHERE usr = ? AND grp = ?",
-                    [ $userId, $user->getPrimaryGroup()->getID() ]
-                );
             }
 
             $sql = [];
@@ -235,10 +243,12 @@ class UserManagementDatabase extends UserManagement
     {
         $trans = $this->db->begin();
         try {
-            $this->db->query(
-                "DELETE FROM " . $this->options['tableUserGroups'] . " WHERE usr = ?",
-                [ $user->getID() ]
-            );
+            if (isset($this->options['tableUserGroups'])) {
+                $this->db->query(
+                    "DELETE FROM " . $this->options['tableUserGroups'] . " WHERE usr = ?",
+                    [ $user->getID() ]
+                );
+            }
             $this->db->query(
                 "DELETE FROM " . $this->options['tableProviders'] . " WHERE usr = ?",
                 [ $user->getID() ]
@@ -277,17 +287,19 @@ class UserManagementDatabase extends UserManagement
             }
             $primary = null;
             $groups = [];
-            foreach (
-                $this->db->all(
-                    "SELECT grp, main FROM " . $this->options['tableUserGroups'] . " WHERE usr = ? ORDER BY grp",
-                    [ $id ]
-                ) as $v
-            ) {
-                $grp = $this->getGroup($v['grp']);
-                if ((int)$v['main']) {
-                    $primary = $grp;
+            if (isset($this->options['tableUserGroups'])) {
+                foreach (
+                    $this->db->all(
+                        "SELECT grp, main FROM " . $this->options['tableUserGroups'] . " WHERE usr = ? ORDER BY grp",
+                        [ $id ]
+                    ) as $v
+                ) {
+                    $grp = $this->getGroup($v['grp']);
+                    if ((int)$v['main']) {
+                        $primary = $grp;
+                    }
+                    $groups[] = $this->getGroup($v['grp']);
                 }
-                $groups[] = $this->getGroup($v['grp']);
             }
 
             $providers = $this->db->all(
@@ -341,14 +353,25 @@ class UserManagementDatabase extends UserManagement
             return parent::getGroup($id);
         }
         catch (UserException $e) {
-            $data = $this->db->one("SELECT grp, name FROM " . $this->options['tableGroups'] . " WHERE grp = ?", $id);
+            $data = null;
+            if ($this->options['tableGroups']) {
+                $data = $this->db->one(
+                    "SELECT grp, name FROM " . $this->options['tableGroups'] . " WHERE grp = ?",
+                    $id
+                );
+            }
             if (!$data) {
                 throw new UserException("Group does not exist");
             }
             $group = new Group(
                 $id,
                 $data['name'],
-                $this->db->all("SELECT perm FROM " . $this->options['tableGroupsPermissions'] . " WHERE grp = ?", $id)
+                isset($this->options['tableGroupsPermissions']) ?
+                    $this->db->all(
+                        "SELECT perm FROM " . $this->options['tableGroupsPermissions'] . " WHERE grp = ?",
+                        $id
+                    ) :
+                    []
             );
             parent::saveGroup($group);
             return $group;
@@ -361,6 +384,9 @@ class UserManagementDatabase extends UserManagement
      */
     public function saveGroup(GroupInterface $group) : UserManagementInterface
     {
+        if (!isset($this->options['tableGroups'])) {
+            throw new UserException("Cannot save without table");
+        }
         $trans = $this->db->begin();
         try {
             if (!$group->getID() || !$this->db->one(
@@ -378,30 +404,35 @@ class UserManagementDatabase extends UserManagement
                     [ $group->getName(), $group->getID() ]
                 );
             }
-            $permissions = $group->getPermissions();
-            $this->db->query(
-                "DELETE FROM " . $this->options['tableGroupsPermissions'] . " WHERE grp = ?" . 
-                 (count($permissions) ? " AND perm NOT IN (??)" : ""),
-                 (count($permissions) ? [ $group->getID(), $permissions ] : [$group->getID()])
-            );
-            foreach ($group->getPermissions() as $permission) {
-                if (!$this->db->one(
-                    "SELECT 1 FROM " . $this->options['tablePermissions'] . " WHERE perm = ?",
-                    [ $permission ]
-                )) {
-                    $this->db->query(
-                        "INSERT INTO " . $this->options['tablePermissions'] . " (perm, created) VALUES (?, ?)",
-                        [ $permission, date('Y-m-d H:i:s') ]
-                    );
-                }
-                if (!$this->db->one(
-                    "SELECT 1 FROM " . $this->options['tableGroupsPermissions'] . " WHERE grp = ? AND perm = ?",
-                    [ $group->getID(), $permission ]
-                )) {
-                    $this->db->query(
-                        "INSERT INTO " . $this->options['tableGroupsPermissions'] . " (grp, perm, created) VALUES (?, ?, ?)",
-                        [ $group->getID(), $permission, date('Y-m-d H:i:s') ]
-                    );
+            if (
+                isset($this->options['tableGroupsPermissions']) &&
+                isset($this->options['tablePermissions'])
+            ) {
+                $permissions = $group->getPermissions();
+                $this->db->query(
+                    "DELETE FROM " . $this->options['tableGroupsPermissions'] . " WHERE grp = ?" . 
+                    (count($permissions) ? " AND perm NOT IN (??)" : ""),
+                    (count($permissions) ? [ $group->getID(), $permissions ] : [$group->getID()])
+                );
+                foreach ($group->getPermissions() as $permission) {
+                    if (!$this->db->one(
+                        "SELECT 1 FROM " . $this->options['tablePermissions'] . " WHERE perm = ?",
+                        [ $permission ]
+                    )) {
+                        $this->db->query(
+                            "INSERT INTO " . $this->options['tablePermissions'] . " (perm, created) VALUES (?, ?)",
+                            [ $permission, date('Y-m-d H:i:s') ]
+                        );
+                    }
+                    if (!$this->db->one(
+                        "SELECT 1 FROM " . $this->options['tableGroupsPermissions'] . " WHERE grp = ? AND perm = ?",
+                        [ $group->getID(), $permission ]
+                    )) {
+                        $this->db->query(
+                            "INSERT INTO " . $this->options['tableGroupsPermissions'] . " (grp, perm, created) VALUES (?, ?, ?)",
+                            [ $group->getID(), $permission, date('Y-m-d H:i:s') ]
+                        );
+                    }
                 }
             }
             $this->db->commit();
@@ -424,16 +455,21 @@ class UserManagementDatabase extends UserManagement
      */
     public function deleteGroup(GroupInterface $group) : UserManagementInterface
     {
+        if (!isset($this->options['tableGroups']) || !isset($this->options['tableUserGroups'])) {
+            throw new UserException("Cannot save without table");
+        }
         $trans = $this->db->begin();
         try {
             $this->db->query(
                 "DELETE FROM " . $this->options['tableUserGroups'] . " WHERE grp = ?",
                 [ $group->getID() ]
             );
-            $this->db->query(
-                "DELETE FROM " . $this->options['tableGroupsPermissions'] . " WHERE grp = ?",
-                [ $group->getID() ]
-            );
+            if (isset($this->options['tableGroupsPermissions'])) {
+                $this->db->query(
+                    "DELETE FROM " . $this->options['tableGroupsPermissions'] . " WHERE grp = ?",
+                    [ $group->getID() ]
+                );
+            }
             $this->db->query(
                 "DELETE FROM " . $this->options['tableGroups'] . " WHERE grp = ?",
                 [ $group->getID() ]
@@ -458,6 +494,9 @@ class UserManagementDatabase extends UserManagement
      */
     public function addPermission(string $permission) : UserManagementInterface
     {
+        if (!isset($this->options['tablePermissions'])) {
+            throw new UserException("Cannot save without table");
+        }
         $trans = $this->db->begin();
         try {
             if (!$this->db->one(
@@ -489,6 +528,9 @@ class UserManagementDatabase extends UserManagement
      */
     public function deletePermission(string $permission) : UserManagementInterface
     {
+        if (!isset($this->options['tablePermissions'])) {
+            throw new UserException("Cannot save without table");
+        }
         $trans = $this->db->begin();
         try {
             $this->db->query(
