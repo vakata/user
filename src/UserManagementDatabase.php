@@ -241,7 +241,7 @@ class UserManagementDatabase extends UserManagement
      */
     public function deleteUser(UserInterface $user) : UserManagementInterface
     {
-        $trans = $this->db->begin();
+        $this->db->begin();
         try {
             if (isset($this->options['tableUserGroups'])) {
                 $this->db->query(
@@ -262,7 +262,7 @@ class UserManagementDatabase extends UserManagement
             return $this;
         }
         catch (\Exception $e) {
-            $this->db->rollback($trans);
+            $this->db->rollback();
             throw $e;
         }
     }
@@ -387,7 +387,7 @@ class UserManagementDatabase extends UserManagement
         if (!isset($this->options['tableGroups'])) {
             throw new UserException("Cannot save without table");
         }
-        $trans = $this->db->begin();
+        $this->db->begin();
         try {
             if (!$group->getID() || !$this->db->one(
                 "SELECT 1 FROM " . $this->options['tableGroups'] . " WHERE grp = ?",
@@ -410,7 +410,7 @@ class UserManagementDatabase extends UserManagement
             ) {
                 $permissions = $group->getPermissions();
                 $this->db->query(
-                    "DELETE FROM " . $this->options['tableGroupsPermissions'] . " WHERE grp = ?" . 
+                    "DELETE FROM " . $this->options['tableGroupsPermissions'] . " WHERE grp = ?" .
                     (count($permissions) ? " AND perm NOT IN (??)" : ""),
                     (count($permissions) ? [ $group->getID(), $permissions ] : [$group->getID()])
                 );
@@ -437,7 +437,7 @@ class UserManagementDatabase extends UserManagement
             }
             $this->db->commit();
         } catch (\Exception $e) {
-            $this->db->rollback($trans);
+            $this->db->rollback();
             throw $e;
         }
         parent::saveGroup($group);
@@ -458,7 +458,7 @@ class UserManagementDatabase extends UserManagement
         if (!isset($this->options['tableGroups']) || !isset($this->options['tableUserGroups'])) {
             throw new UserException("Cannot save without table");
         }
-        $trans = $this->db->begin();
+        $this->db->begin();
         try {
             $this->db->query(
                 "DELETE FROM " . $this->options['tableUserGroups'] . " WHERE grp = ?",
@@ -476,7 +476,7 @@ class UserManagementDatabase extends UserManagement
             );
             $this->db->commit();
         } catch (\Exception $e) {
-            $this->db->rollback($trans);
+            $this->db->rollback();
             throw $e;
         }
         parent::deleteGroup($group);
@@ -497,7 +497,7 @@ class UserManagementDatabase extends UserManagement
         if (!isset($this->options['tablePermissions'])) {
             throw new UserException("Cannot save without table");
         }
-        $trans = $this->db->begin();
+        $this->db->begin();
         try {
             if (!$this->db->one(
                 "SELECT 1 FROM " . $this->options['tablePermissions'] . " WHERE perm = ?",
@@ -510,7 +510,7 @@ class UserManagementDatabase extends UserManagement
             }
             $this->db->commit();
         } catch (\Exception $e) {
-            $this->db->rollback($trans);
+            $this->db->rollback();
             throw $e;
         }
         parent::addPermission($permission);
@@ -531,7 +531,7 @@ class UserManagementDatabase extends UserManagement
         if (!isset($this->options['tablePermissions'])) {
             throw new UserException("Cannot save without table");
         }
-        $trans = $this->db->begin();
+        $this->db->begin();
         try {
             $this->db->query(
                 "DELETE FROM " . $this->options['tableGroupsPermissions'] . " WHERE perm = ?",
@@ -543,7 +543,7 @@ class UserManagementDatabase extends UserManagement
             );
             $this->db->commit();
         } catch (\Exception $e) {
-            $this->db->rollback($trans);
+            $this->db->rollback();
             throw $e;
         }
         parent::deletePermission($permission);
